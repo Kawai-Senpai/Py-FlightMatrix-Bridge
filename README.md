@@ -1,4 +1,4 @@
-# FlightMatrix Bridge : API for Flight Matrix Simulation Software
+# FlightMatrix Bridge • API for Flight Matrix Simulation Software
 
 ![FlightMatrix Bridge Cover](https://github.com/Kawai-Senpai/Py-FlightMatrix-Bridge/blob/0d434625dc45a12744eacaa4df21de29f0072612/Assets/FlightMatrix%20Cover.png)
 

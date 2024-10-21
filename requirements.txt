@@ -1,0 +1,2 @@
+numpy==1.24.2
+ultraprint==3.0.0

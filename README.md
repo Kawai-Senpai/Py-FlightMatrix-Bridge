@@ -66,8 +66,26 @@ This package provides:
 
 ## Features
 
-![Controllable Features](https://github.com/Kawai-Senpai/Py-FlightMatrix-Bridge/blob/020882b8df9d9452bcb43664452dadc9df753558/Assets/Screenshot%20(3).png)
 
+![Controllable Features](https://github.com/Kawai-Senpai/Py-FlightMatrix-Bridge/blob/020882b8df9d9452bcb43664452dadc9df753558/Assets/Screenshot%20(3).png)
+(Controllable Features)
+
+![Simulation Environments](https://github.com/Kawai-Senpai/Py-FlightMatrix-Bridge/blob/020882b8df9d9452bcb43664452dadc9df753558/Assets/Screenshot%20(1).png)
+(Simulation Environments)
+
+![Graphics Presets](https://github.com/Kawai-Senpai/Py-FlightMatrix-Bridge/blob/020882b8df9d9452bcb43664452dadc9df753558/Assets/Screenshot%20(2).png)
+(Graphics Presets)
+
+The **FlightMatrixBridge** API offers a range of features to facilitate real-time communication and data sharing between processes. Key features include:
+- **Dual Camera Support**: Flight Matrix is equipped with two cameras—left and right—that operate simultaneously. Each camera is capable of outputting high-quality RGB images, depth passes (z-depth), and segmentation maps, providing a comprehensive view of your simulated environment.
+- **Independent Camera Control**: Each camera can be controlled independently, allowing you to position them relative to the drone with precision. Adjust the x, y, z coordinates, as well as yaw, pitch, and roll to achieve the desired perspective.
+- **Variable Speed Control**: Control the speed of each axis and the rotation speed of the cameras, ensuring you can fine-tune the responsiveness to suit your simulation needs.
+- **Customizable Output**: Turn on and off various output maps as required. Control the resolution of the output frames and adjust the Field of View (FOV) to enhance your visual experience.
+- **Graphics Presets**: Choose from various graphics presets tailored for different simulation scenarios. Optimize the software’s performance based on your hardware capabilities and desired visual fidelity.
+- **Diverse Simulation Environments**: Flight Matrix features a range of realistic maps, including architectural, natural, and ultra-realistic environments for authentic simulations. Navigate through intricate landscapes and urban settings as if you were flying in the real world.
+- **Human-like AI Characters**: Enhance your simulations with beautifully animated AI characters that simulate real crowds and human interactions. Observe how they behave and interact within the environment, adding depth to your scenarios.
+
+The **FlightMatrixBridge** API provides a simple and efficient way to interact with the Flight Matrix simulation software, enabling you to access frames, sensor data, and movement commands in real-time. The API is designed to be easy to use and flexible, allowing you to integrate it into your projects seamlessly.
 - **Frame Management**: Retrieve left/right frames, z-depth maps, and segmentation frames in real-time.
 - **Sensor Data Access**: Retrieve real-time sensor data such as location, orientation, velocity, acceleration, magnetometer readings, and more.
 - **Movement Command Handling**: Send movement commands (position and orientation) for external systems to process.

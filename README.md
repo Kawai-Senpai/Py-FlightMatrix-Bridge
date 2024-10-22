@@ -19,13 +19,14 @@ The project is structured around two primary files:
 4. [Usage](#usage)
     1. [Initializing the FlightMatrixBridge](#initializing-the-flightmatrixbridge)
     2. [Units](#units)
-    3. [Logging Functions](#logging-functions)
-    4. [Flight Matrix API](#flight-matrix-api)
+    3. [Axis System](#axis-system)
+    4. [Logging Functions](#logging-functions)
+    5. [Flight Matrix API](#flight-matrix-api)
         - [Getting Frame Data](#getting-frame-data)
         - [Fetching Sensor Data](#fetching-sensor-data)
         - [Sending Movement Commands](#sending-movement-commands)
-    5. [Resolution & Noise Configuration](#resolution--noise-configuration)
-    6. [Timestamp Utilities](#timestamp-utilities)
+    6. [Resolution & Noise Configuration](#resolution--noise-configuration)
+    7. [Timestamp Utilities](#timestamp-utilities)
 5. [Detailed Functionality](#detailed-functionality)
     - [Initialization](#initialization)
     - [Shared Memory Management](#shared-memory-management)
@@ -84,7 +85,7 @@ To initialize and start using the **FlightMatrixBridge**, create an instance of 
 ```python
 from flightmatrix.bridge import FlightMatrixBridge
 
-bridge = FlightMatrixBridge(resolution=(1226, 370))  # Set frame resolution (width, height)
+bridge = FlightMatrixBridge(resolution=(1226, 370), noise_level=0.01, apply_noise=False)  # Set frame resolution (width, height), noise level, and noise application
 ```
 
 ### Units
@@ -92,12 +93,29 @@ bridge = FlightMatrixBridge(resolution=(1226, 370))  # Set frame resolution (wid
 The system uses the following units for sensor data:
 - Length: centimeters (cm)
 - Angular values: degrees (°)
-- Angular velocity: degrees per second (°/s)
-- Acceleration: centimeters per second squared (cm/s²)
+- Angular velocity/ gyroscope readings: degrees per second (°/s)
+- Acceleration/ accelerometer readings: centimeters per second squared (cm/s²) 
 - Magnetometer readings: unit vector
 - LiDAR data: centimeters (cm)
 - Collision detection: centimeters (cm)
 - Timestamp: milliseconds (ms)
+
+### Axis System
+
+The system uses the following axis system:
+- Y-axis: Forward
+- -Y-axis: Backward
+- -X-axis: Left
+- X-axis: Right
+- -Z-axis: Bottom
+- Z-axis: Top
+
+Rotation values are in degrees and are labled roll, pitch, and yaw.
+- X-axis: Roll
+- Y-axis: Pitch
+- Z-axis: Yaw
+
+The API and the software system follows this axis system unless otherwise specified.
 
 ### Logging Functions
 
@@ -213,12 +231,14 @@ The `get_sensor_data` method retrieves sensor readings from the shared memory. T
 
 - Location `(x, y, z)` in *centimeters*
 - Orientation `(roll, pitch, yaw)` in *degrees*
-- Angular velocity `(x, y, z)` in *degrees per second*
-- Acceleration `(x, y, z)` in *cm/s^2*
+- gyroscope `(x, y, z)` in *degrees per second*
+- accelerometer `(x, y, z)` in *cm/s^2*
 - Magnetometer readings `(x, y, z)` in *unit vector*
 - LiDAR data `(LiDARForward, LiDARBackward, LiDARLeft, LiDARRight, LiDARBottom) or (Y, -Y, -X, X, -Z)` in *centimeters*
 - Collision detection status `(True/False, LocationX, LocationY, LocationZ)` in *centimeters*
 - Timestamp in *milliseconds*
+
+Location and orientation data are w.r.t. the world  coordinate system (World Frame). The orientation values are local to the drone's frame of reference and are in the order of roll, pitch, and yaw (X, Y, Z).
 
 ### Movement Command Management
 
@@ -311,7 +331,7 @@ bridge.send_movement_command(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 from flightmatrix.bridge import FlightMatrixBridge
 
 # Initialize the bridge
-bridge = FlightMatrixBridge()
+bridge = FlightMatrixBridge(resolution=(1226, 370), noise_level=0.01, apply_noise=False)  # Set frame resolution (width, height), noise level, and noise application
 
 # Fetch sensor data
 sensor_data = bridge.get_sensor_data()
@@ -323,8 +343,8 @@ else:
     # Extract sensor readings
     location = sensor_data['location']
     orientation = sensor_data['orientation']
-    angular_velocity = sensor_data['angular_velocity']
-    acceleration = sensor_data['acceleration']
+    gyroscope = sensor_data['gyroscope']
+    accelerometer = sensor_data['accelerometer']
     magnetometer = sensor_data['magnetometer']
     lidar = sensor_data['lidar']
     collision = sensor_data['collision']
@@ -336,8 +356,8 @@ else:
     print(f"Timestamp: {timestamp} ms")
     print(f"Location (cm): X={location[0]:.2f}, Y={location[1]:.2f}, Z={location[2]:.2f}")
     print(f"Orientation (degrees): Roll={orientation[0]:.2f}, Pitch={orientation[1]:.2f}, Yaw={orientation[2]:.2f}")
-    print(f"Angular Velocity (deg/s): X={angular_velocity[0]:.2f}, Y={angular_velocity[1]:.2f}, Z={angular_velocity[2]:.2f}")
-    print(f"Acceleration (cm/s²): X={acceleration[0]:.2f}, Y={acceleration[1]:.2f}, Z={acceleration[2]:.2f}")
+    print(f"Gyroscope (deg/s): X={gyroscope[0]:.2f}, Y={gyroscope[1]:.2f}, Z={gyroscope[2]:.2f}")
+    print(f"Accelerometer (cm/s²): X={accelerometer[0]:.2f}, Y={accelerometer[1]:.2f}, Z={accelerometer[2]:.2f}")
     print(f"Magnetometer (unit vector): X={magnetometer[0]:.2f}, Y={magnetometer[1]:.2f}, Z={magnetometer[2]:.2f}")
     print(f"LiDAR Data (cm): Forward={lidar[0]:.2f}, Backward={lidar[1]:.2f}, Left={lidar[2]:.2f}, Right={lidar[3]:.2f}, Bottom={lidar[4]:.2f}")
     print(f"Collision Detection: Status={collision[0]}, Location (cm): X={collision[1]:.2f}, Y={collision[2]:.2f}, Z={collision[3]:.2f}")
@@ -373,7 +393,7 @@ This class interfaces with the Flight Matrix system using shared memory for inte
 
 - `shm_timestamps (dict)`: Dictionary storing the shared memory objects for timestamps.
 
-- `num_floats (int)`: Number of float values stored in shared memory for movement commands. Defaults to `6`.
+- `num_floats (int)`: Number of float values stored in shared memory for movement commands. Defaults to `6`. Do not edit this value.
 
 ---
 
@@ -381,17 +401,19 @@ This class interfaces with the Flight Matrix system using shared memory for inte
 
 ---
 
-###### **`__init__(self, resolution=(1226, 370))`**
+###### **`__init__(self, resolution=(1226, 370), noise_level=0.01, apply_noise=False)`**
 
 **Description:**  
-Initializes the `FlightMatrixBridge` class by setting up shared memory and logging.
+Initializes the `FlightMatrixBridge` class by setting up shared memory, logging, and configuring noise settings.
 
 **Args:**  
 - `resolution (tuple, optional)`: A tuple specifying the frame's width and height. Defaults to `(1226, 370)`.
+- `noise_level (float, optional)`: Specifies the level of noise to be applied to sensor data. Defaults to `0.01`.
+- `apply_noise (bool, optional)`: Boolean flag that determines whether noise should be applied to sensor data. Defaults to `False`.
 
 **Example:**
 ```python
-bridge = FlightMatrixBridge(resolution=(800, 600))
+bridge = FlightMatrixBridge(resolution=(800, 600), noise_level=0.05, apply_noise=True)
 ```
 
 ---
@@ -532,10 +554,24 @@ noisy_frame = bridge.add_noise(frame_data)
 ###### **`get_sensor_data(self)`**
 
 **Description:**  
-Retrieves sensor data from shared memory.
+Retrieves sensor data from shared memory and returns it as a dictionary.  
+If the sensor data is not available in shared memory, a warning is logged,  
+and a dictionary with all sensor fields set to None and an error message is returned.  
+The sensor data includes:
+- location: 3 floats representing the location coordinates.
+- orientation: 3 floats representing the orientation.
+- gyroscope: 3 floats representing the gyroscope readings.
+- accelerometer: 3 floats representing the accelerometer readings.
+- magnetometer: 3 floats representing the magnetometer readings.
+- lidar: 5 floats representing the lidar readings.
+- collision: 4 floats representing the collision data.
+- timestamp: The timestamp of the sensor data.
+
+If noise application is enabled, noise is added to the gyroscope, accelerometer,  
+magnetometer, and lidar data.
 
 **Returns:**  
-- `np.ndarray or None`: The sensor data array, or `None` if the shared memory is not available.
+- `dict`: A dictionary containing the sensor data or an error message if the data is not available.
 
 **Example:**
 ```python

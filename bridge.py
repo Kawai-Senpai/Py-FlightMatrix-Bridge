@@ -60,23 +60,28 @@ class FlightMatrixBridge:
             Sets whether to apply noise.
     """
     
-    def __init__(self, resolution=(1226, 370)):
+    def __init__(self, resolution=(1226, 370), noise_level=0.01, apply_noise=False):
         """
-        Initializes the FlightMatrix bridge with the given resolution and sets up shared memory and logging.
+        Initialize the FlightMatrix bridge.
         Args:
-            resolution (tuple, optional): A tuple specifying the width and height of the frame. Defaults to (1226, 370).
+            resolution (tuple): A tuple specifying the width and height of the frame. Default is (1226, 370).
+            noise_level (float): The level of noise to apply. Default is 0.01.
+            apply_noise (bool): Flag to determine whether to apply noise. Default is False.
         Attributes:
             width (int): The width of the frame.
             height (int): The height of the frame.
             frame_shape (tuple): The shape of the frame as (height, width).
             frame_shape_3ch (tuple): The shape of the frame with 3 channels as (height, width, 3).
-            noise_level (float): The level of noise to apply. Defaults to 0.01.
-            apply_noise (bool): Flag to determine whether to apply noise. Defaults to False.
-            memory_names (dict): Dictionary containing names for shared memory blocks.
-            log (logger): Logger object for logging events.
+            noise_level (float): The level of noise to apply.
+            apply_noise (bool): Flag to determine whether to apply noise.
+            memory_names (dict): Dictionary containing shared memory names.
+            log (logger): Logger object for FlightMatrix.
             shm (dict): Dictionary to store shared memory blocks.
             shm_timestamps (dict): Dictionary to store shared memory blocks for timestamps.
-            num_floats (int): Number of floats for the movement command handler. Defaults to 6.
+            num_floats (int): Number of floats for movement command handler. Do not change this value.
+        Methods:
+            _initialize_shared_memory: Initializes the shared memory blocks.
+            _initialize_movement_command_memory: Initializes the movement command handler.
         """
 
         self.width, self.height = resolution
@@ -84,8 +89,8 @@ class FlightMatrixBridge:
         self.frame_shape_3ch = (self.height, self.width, 3)
         
         # Noise
-        self.noise_level = 0.01
-        self.apply_noise = False
+        self.noise_level = noise_level
+        self.apply_noise = apply_noise
 
         # Shared memory names
         self.memory_names = {
@@ -108,7 +113,7 @@ class FlightMatrixBridge:
         self._initialize_shared_memory()
 
         # Initialize the movement command handler
-        self.num_floats = 6
+        self.num_floats = 6 #! Do not change this value
         self._initialize_movement_command_memory()
 
     #! Logging Functions -----------------------------------------------------
@@ -280,21 +285,22 @@ class FlightMatrixBridge:
 
     def get_sensor_data(self):
         """
-        Retrieve sensor data from shared memory.
-        This method fetches sensor data from shared memory and returns it as a dictionary.
-        If the sensor data is not available in shared memory, it returns a dictionary with
-        default values and an error message.
+        Retrieves sensor data from shared memory and returns it as a dictionary.
+        If the sensor data is not available in shared memory, a warning is logged,
+        and a dictionary with all sensor fields set to None and an error message is returned.
+        The sensor data includes:
+        - location: 3 floats representing the location coordinates.
+        - orientation: 3 floats representing the orientation.
+        - gyroscope: 3 floats representing the gyroscope readings.
+        - accelerometer: 3 floats representing the accelerometer readings.
+        - magnetometer: 3 floats representing the magnetometer readings.
+        - lidar: 5 floats representing the lidar readings.
+        - collision: 4 floats representing the collision data.
+        - timestamp: The timestamp of the sensor data.
+        If noise application is enabled, noise is added to the gyroscope, accelerometer,
+        magnetometer, and lidar data.
         Returns:
-            dict: A dictionary containing the following keys:
-            - location (list of float): The location coordinates [x, y, z].
-            - orientation (list of float): The orientation angles [roll, pitch, yaw].
-            - angular_velocity (list of float): The angular velocity [x, y, z].
-            - acceleration (list of float): The acceleration [x, y, z].
-            - magnetometer (list of float): The magnetometer readings [x, y, z].
-            - lidar (list of float): The lidar readings [distance1, distance2, distance3, distance4, distance5].
-            - collision (list of float): The collision data [value1, value2, value3, value4].
-            - timestamp (float or None): The timestamp of the sensor data.
-            - error (str, optional): An error message if sensor data is not available.
+            dict: A dictionary containing the sensor data or an error message if the data is not available.
         """
 
         if self.shm.get('sensor_data') is None:
@@ -303,8 +309,8 @@ class FlightMatrixBridge:
             return dict(
                 location=None,
                 orientation=None,
-                angular_velocity=None,
-                acceleration=None,
+                gyroscope=None,
+                accelerometer=None,
                 magnetometer=None,
                 lidar=None,
                 collision=None,
@@ -323,8 +329,8 @@ class FlightMatrixBridge:
         return dict(
             location=sensor_array[:3].tolist(),
             orientation=sensor_array[3:6].tolist(),
-            angular_velocity=sensor_array[6:9].tolist(),
-            acceleration=sensor_array[9:12].tolist(),
+            gyroscope=sensor_array[6:9].tolist(),
+            accelerometer=sensor_array[9:12].tolist(),
             magnetometer=sensor_array[12:15].tolist(),
             lidar=sensor_array[15:20].tolist(),
             collision=sensor_array[20:24].tolist(),

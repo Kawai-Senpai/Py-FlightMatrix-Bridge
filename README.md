@@ -48,8 +48,8 @@ The project is structured around two primary files:
         1. [`timestamp2string`](#timestamp2stringtimestamp)
         2. [`timestamp2datetime`](#timestamp2datetimetimestamp)
         3. [Class: `DroneController`](#class-dronecontroller)
-          -[Attributes](#attributes)
-          -[Methods](#methods)
+          - [Attributes](#attributes)
+          - [Methods](#methods)
 8. [Credits](#credits)
 
 ## Introduction

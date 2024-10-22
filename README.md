@@ -39,11 +39,18 @@ The project is structured around two primary files:
     1. [Example 1: Fetching Frames](#example-1-fetching-frames)
     2. [Example 2: Sending Movement Commands](#example-2-sending-movement-commands)
     3. [Example 3: Fetching Sensor Data](#example-3-fetching-sensor-data)
+    4. [Example 4: Drone Controller](#example-4-drone-controller)
 7. [Documentation](#documentation)
     1. [Class: `FlightMatrixBridge`](#class-flightmatrixbridge)
         - [Attributes](#attributes)
         - [Methods](#methods) 
-        - [utility.py](#utility.py)
+    2. [Utilities](#utilities)
+        1. [`timestamp2string`](#timestamp2stringtimestamp)
+        2. [`timestamp2datetime`](#timestamp2datetimetimestamp)
+        3. [Class: `DroneController`](#class-dronecontroller)
+          -[Attributes](#attributes)
+          -[Methods](#methods)
+8. [Credits](#credits)
 
 ## Introduction
 
@@ -238,8 +245,6 @@ The `get_sensor_data` method retrieves sensor readings from the shared memory. T
 - Collision detection status `(True/False, LocationX, LocationY, LocationZ)` in *centimeters*
 - Timestamp in *milliseconds*
 
-Location and orientation data are w.r.t. the world  coordinate system (World Frame). The orientation values are local to the drone's frame of reference and are in the order of roll, pitch, and yaw (X, Y, Z).
-
 ### Movement Command Management
 
 Movement commands are written to shared memory using `send_movement_command`. These commands include the position and orientation of the system and are stored as six floating-point values.
@@ -362,6 +367,37 @@ else:
     print(f"LiDAR Data (cm): Forward={lidar[0]:.2f}, Backward={lidar[1]:.2f}, Left={lidar[2]:.2f}, Right={lidar[3]:.2f}, Bottom={lidar[4]:.2f}")
     print(f"Collision Detection: Status={collision[0]}, Location (cm): X={collision[1]:.2f}, Y={collision[2]:.2f}, Z={collision[3]:.2f}")
 
+```
+
+### Example 4: Drone Controller
+
+```python
+
+from flightmatrix.bridge import FlightMatrixBridge
+from flightmatrix.utilities import DroneController
+
+# Example Usage
+bridge = FlightMatrixBridge()
+drone = DroneController(bridge)
+
+# Move forward by 1.0 (positive y-axis)
+drone.move_forward(1.0)
+
+# Ascend by 0.5 (positive z-axis)
+drone.ascend(0.5)
+
+# Rotate in yaw by 0.3
+drone.rotate_yaw(0.3)
+
+# Stop only rotation (keep movement intact)
+drone.stop_rotation()
+
+# Stop all movement and rotation
+drone.stop()
+
+# Hover in place and rotate at 0.5 speed for 5 seconds
+drone.hover_and_rotate(0.5, 5)
+  
 ```
 
 ## Documentation
@@ -784,43 +820,225 @@ left_segmentation_data = bridge.get_left_seg()
 
 ---
 
-#### utility.py
-This file contains utility functions to handle timestamps and convert them into human-readable formats and more.
-
----
-
-###### **`timestamp2string(timestamp)`**
+#### 2. Utilities
+   
+##### 1. **`timestamp2string`**
 
 **Description:**  
-Converts a timestamp in milliseconds (integer) to a human-readable string format.
+Converts a timestamp in milliseconds to a human-readable string format.
 
 **Args:**  
-- `timestamp (int)`: The timestamp in milliseconds to be converted.
+- `timestamp (int)`: The timestamp in milliseconds.
 
 **Returns:**  
-- `str`: The formatted timestamp as a string in the format `YYYY-MM-DD HH:MM:SS.sss`.
+- `str`: Formatted timestamp as a string in the format 'YYYY-MM-DD HH:MM:SS:fff'.
 
 **Example:**
 ```python
-formatted_time = timestamp2string(1633036800000)
-# Output: '2021-10-01 00:00:00.000'
+formatted_time = timestamp2string(1609459200000)
+# Output: '2021-01-01 00:00:00:000'
 ```
 
 ---
 
-###### **`timestamp2datetime(timestamp)`**
+##### 2. **`timestamp2datetime`**
 
 **Description:**  
-Converts a timestamp in milliseconds (integer) to a `datetime` object.
+Converts a timestamp in milliseconds to a `datetime` object in UTC.
 
 **Args:**  
-- `timestamp (int)`: The timestamp in milliseconds to be converted.
+- `timestamp (int)`: The timestamp in milliseconds.
 
 **Returns:**  
-- `datetime`: The corresponding `datetime` object in UTC timezone.
+- `datetime`: The corresponding `datetime` object in UTC.
 
 **Example:**
 ```python
-dt_object = timestamp2datetime(1633036800000)
-# Output: datetime.datetime(2021, 10, 1, 0, 0, tzinfo=datetime.timezone.utc)
+datetime_obj = timestamp2datetime(1609459200000)
+# Output: datetime(2021, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
 ```
+
+---
+
+#### Class: `DroneController`
+This class provides an interface to control the drone's movements by sending commands to the flight matrix system. It allows the drone to move along the x, y, and z axes and rotate around the roll, pitch, and yaw axes.
+
+---
+
+##### **Attributes:**
+
+- `bridge (FlightMatrixBridge)`: The bridge object used to communicate with the drone.
+- `current_x (float)`: Current x-coordinate position, initialized to `0.0`.
+- `current_y (float)`: Current y-coordinate position, initialized to `0.0`.
+- `current_z (float)`: Current z-coordinate position, initialized to `0.0`.
+- `current_roll (float)`: Current roll angle, initialized to `0.0`.
+- `current_pitch (float)`: Current pitch angle, initialized to `0.0`.
+- `current_yaw (float)`: Current yaw angle, initialized to `0.0`.
+
+---
+
+##### **Methods:**
+
+###### **`__init__(self, bridge_object: FlightMatrixBridge)`**
+
+**Description:**  
+Initializes the `DroneController` class by associating it with a `FlightMatrixBridge` object and setting initial drone movement parameters to zero.
+
+**Args:**  
+- `bridge_object (FlightMatrixBridge)`: An instance of `FlightMatrixBridge` used to communicate with the flight matrix system.
+
+---
+
+###### **`_send_command(self)`**
+
+**Description:**  
+Sends the current positional and rotational state (x, y, z, roll, pitch, yaw) as movement commands to the drone.
+
+**Returns:**  
+None
+
+---
+
+###### **`move_x(self, value)`**
+
+**Description:**  
+Moves the drone to a specified x-coordinate.
+
+**Args:**  
+- `value (float)`: The x-coordinate to move to.
+
+**Returns:**  
+None
+
+---
+
+###### **`move_y(self, value)`**
+
+**Description:**  
+Moves the drone to a specified y-coordinate (left or right).
+
+**Args:**  
+- `value (float)`: The y-coordinate to move to.
+
+**Returns:**  
+None
+
+---
+
+###### **`move_z(self, value)`**
+
+**Description:**  
+Moves the drone to a specified z-coordinate (up or down).
+
+**Args:**  
+- `value (float)`: The z-coordinate to move to.
+
+**Returns:**  
+None
+
+---
+
+###### **`rotate_roll(self, value)`**
+
+**Description:**  
+Rotates the drone to a specified roll angle.
+
+**Args:**  
+- `value (float)`: The roll angle to rotate to.
+
+**Returns:**  
+None
+
+---
+
+###### **`rotate_pitch(self, value)`**
+
+**Description:**  
+Rotates the drone to a specified pitch angle.
+
+**Args:**  
+- `value (float)`: The pitch angle to rotate to.
+
+**Returns:**  
+None
+
+---
+
+###### **`rotate_yaw(self, value)`**
+
+**Description:**  
+Rotates the drone to a specified yaw angle.
+
+**Args:**  
+- `value (float)`: The yaw angle to rotate to, in degrees.
+
+**Returns:**  
+None
+
+---
+
+###### **`ascend(self, value)`**
+
+**Description:**  
+Ascends the drone by a specified value, increasing the current altitude.
+
+**Args:**  
+- `value (float)`: The amount to increase the altitude.
+
+**Returns:**  
+None
+
+---
+
+###### **`descend(self, value)`**
+
+**Description:**  
+Descends the drone by a specified value, decreasing the current altitude.
+
+**Args:**  
+- `value (float)`: The amount to decrease the altitude.
+
+**Returns:**  
+None
+
+---
+
+###### **`move_forward(self, value)`**
+
+**Description:**  
+Moves the drone forward by a specified value (positive y-axis).
+
+**Args:**  
+- `value (float)`: The amount to move forward.
+
+**Returns:**  
+None
+
+---
+
+###### **`move_backward(self, value)`**
+
+**Description:**  
+Moves the drone backward by a specified value (negative y-axis).
+
+**Args:**  
+- `value (float)`: The amount to move backward.
+
+**Returns:**  
+None
+
+---
+
+###### **`stop_movement(self)`**
+
+**Description:**  
+Stops all drone movements on the x, y, and z axes.
+
+**Returns:**  
+None
+
+## Credits
+
+This project was developed and maintained by [Ranit Bhowmick](https://www.linkedin.com/in/ranitbhowmick), a Robotics and Automation engineer with a passion for building innovative solutions in AI, game development, and full-stack projects. Specializing in advanced Python programming, machine learning, and robotics, I’m always open to collaboration and eager to explore new challenges.
+
+I'd like to express my gratitude to the unreal engine community for their support and feedback. I'm always open to suggestions and contributions to improve this project further.

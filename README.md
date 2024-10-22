@@ -68,13 +68,13 @@ This package provides:
 
 
 ![Controllable Features](https://github.com/Kawai-Senpai/Py-FlightMatrix-Bridge/blob/020882b8df9d9452bcb43664452dadc9df753558/Assets/Screenshot%20(3).png)
-(Controllable Features)
+*Controllable Features*
 
 ![Simulation Environments](https://github.com/Kawai-Senpai/Py-FlightMatrix-Bridge/blob/020882b8df9d9452bcb43664452dadc9df753558/Assets/Screenshot%20(1).png)
-(Simulation Environments)
+*Simulation Environments*
 
 ![Graphics Presets](https://github.com/Kawai-Senpai/Py-FlightMatrix-Bridge/blob/020882b8df9d9452bcb43664452dadc9df753558/Assets/Screenshot%20(2).png)
-(Graphics Presets)
+*Graphics Presets*
 
 The **FlightMatrixBridge** API offers a range of features to facilitate real-time communication and data sharing between processes. Key features include:
 - **Dual Camera Support**: Flight Matrix is equipped with two cameras—left and right—that operate simultaneously. Each camera is capable of outputting high-quality RGB images, depth passes (z-depth), and segmentation maps, providing a comprehensive view of your simulated environment.

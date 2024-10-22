@@ -54,6 +54,8 @@ The project is structured around two primary files:
 
 ## Introduction
 
+![FlightMatrix Bridge](https://github.com/Kawai-Senpai/Py-FlightMatrix-Bridge/blob/020882b8df9d9452bcb43664452dadc9df753558/Assets/Screenshot%20(4).png)
+
 The **FlightMatrixBridge** system is designed to bridge multiple processes that need to access shared memory for real-time communication. The typical use cases include flight simulators, robotics platforms, autonomous vehicles, and any application where sharing large datasets like frames or sensor readings between processes is essential.
 
 This package provides:
@@ -63,6 +65,8 @@ This package provides:
 - Utilities to handle timestamps.
 
 ## Features
+
+![Controllable Features](https://github.com/Kawai-Senpai/Py-FlightMatrix-Bridge/blob/020882b8df9d9452bcb43664452dadc9df753558/Assets/Screenshot%20(3).png)
 
 - **Frame Management**: Retrieve left/right frames, z-depth maps, and segmentation frames in real-time.
 - **Sensor Data Access**: Retrieve real-time sensor data such as location, orientation, velocity, acceleration, magnetometer readings, and more.

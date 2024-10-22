@@ -882,10 +882,16 @@ This class provides an interface to control the drone's movements by sending com
 ###### **`__init__(self, bridge_object: FlightMatrixBridge)`**
 
 **Description:**  
-Initializes the `DroneController` class by associating it with a `FlightMatrixBridge` object and setting initial drone movement parameters to zero.
+Initializes the `DroneController` class by linking it to a `FlightMatrixBridge` object and setting the initial drone movement parameters to zero.
 
 **Args:**  
-- `bridge_object (FlightMatrixBridge)`: An instance of `FlightMatrixBridge` used to communicate with the flight matrix system.
+- `bridge_object (FlightMatrixBridge)`: An instance of `FlightMatrixBridge` for communication with the flight matrix system.
+
+**Example:**  
+```python
+bridge = FlightMatrixBridge()
+drone_controller = DroneController(bridge)
+```
 
 ---
 
@@ -896,6 +902,11 @@ Sends the current positional and rotational state (x, y, z, roll, pitch, yaw) as
 
 **Returns:**  
 None
+
+**Example:**  
+```python
+drone_controller._send_command()
+```
 
 ---
 
@@ -910,6 +921,11 @@ Moves the drone to a specified x-coordinate.
 **Returns:**  
 None
 
+**Example:**  
+```python
+drone_controller.move_x(10.5)  # Move drone to x = 10.5
+```
+
 ---
 
 ###### **`move_y(self, value)`**
@@ -922,6 +938,11 @@ Moves the drone to a specified y-coordinate (left or right).
 
 **Returns:**  
 None
+
+**Example:**  
+```python
+drone_controller.move_y(-5.2)  # Move drone to y = -5.2
+```
 
 ---
 
@@ -936,6 +957,11 @@ Moves the drone to a specified z-coordinate (up or down).
 **Returns:**  
 None
 
+**Example:**  
+```python
+drone_controller.move_z(15.0)  # Move drone up to z = 15.0
+```
+
 ---
 
 ###### **`rotate_roll(self, value)`**
@@ -948,6 +974,11 @@ Rotates the drone to a specified roll angle.
 
 **Returns:**  
 None
+
+**Example:**  
+```python
+drone_controller.rotate_roll(30.0)  # Rotate drone to a roll angle of 30 degrees
+```
 
 ---
 
@@ -962,6 +993,11 @@ Rotates the drone to a specified pitch angle.
 **Returns:**  
 None
 
+**Example:**  
+```python
+drone_controller.rotate_pitch(-15.0)  # Rotate drone to a pitch angle of -15 degrees
+```
+
 ---
 
 ###### **`rotate_yaw(self, value)`**
@@ -974,6 +1010,11 @@ Rotates the drone to a specified yaw angle.
 
 **Returns:**  
 None
+
+**Example:**  
+```python
+drone_controller.rotate_yaw(90.0)  # Rotate drone to a yaw angle of 90 degrees
+```
 
 ---
 
@@ -988,6 +1029,11 @@ Ascends the drone by a specified value, increasing the current altitude.
 **Returns:**  
 None
 
+**Example:**  
+```python
+drone_controller.ascend(5.0)  # Ascend drone by 5 units
+```
+
 ---
 
 ###### **`descend(self, value)`**
@@ -1000,6 +1046,11 @@ Descends the drone by a specified value, decreasing the current altitude.
 
 **Returns:**  
 None
+
+**Example:**  
+```python
+drone_controller.descend(3.0)  # Descend drone by 3 units
+```
 
 ---
 
@@ -1014,6 +1065,11 @@ Moves the drone forward by a specified value (positive y-axis).
 **Returns:**  
 None
 
+**Example:**  
+```python
+drone_controller.move_forward(10.0)  # Move drone forward by 10 units
+```
+
 ---
 
 ###### **`move_backward(self, value)`**
@@ -1027,6 +1083,11 @@ Moves the drone backward by a specified value (negative y-axis).
 **Returns:**  
 None
 
+**Example:**  
+```python
+drone_controller.move_backward(8.0)  # Move drone backward by 8 units
+```
+
 ---
 
 ###### **`stop_movement(self)`**
@@ -1036,6 +1097,11 @@ Stops all drone movements on the x, y, and z axes.
 
 **Returns:**  
 None
+
+**Example:**  
+```python
+drone_controller.stop_movement()  # Stop all drone movements
+```
 
 ## Credits
 

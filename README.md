@@ -9,7 +9,7 @@ Download the software from [Flight Matrix](https://gamejolt.com/games/flightmatr
 The project is structured around two primary files:
 
 - **`bridge.py`**: Implements the core functionalities of shared memory management, handling frames, sensor data, movement commands, and logging.
-- **`utilities.py`**: Provides utility functions to handle timestamps and convert them into human-readable formats.
+- **`utilities.py`**: Provides utility functions to handle timestamps and convert them into human-readable formats. It also includes a `DroneController` class for controlling drones.
 
 ## Table of Contents
 

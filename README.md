@@ -50,6 +50,9 @@ The project is structured around two primary files:
         3. [Class: `DroneController`](#class-dronecontroller)
           - [Attributes](#attributes)
           - [Methods](#methods)
+        4. [Class: `DataRecorder`](#class-datarecorder)
+          - [Attributes](#attributes)
+          - [Methods](#methods)
 8. [Credits](#credits)
 
 ## Introduction
@@ -65,7 +68,6 @@ This package provides:
 - Utilities to handle timestamps.
 
 ## Features
-
 
 ![Controllable Features](https://github.com/Kawai-Senpai/Py-FlightMatrix-Bridge/blob/020882b8df9d9452bcb43664452dadc9df753558/Assets/Screenshot%20(3).png)
 *Controllable Features*
@@ -1124,6 +1126,103 @@ None
 ```python
 drone_controller.stop_movement()  # Stop all drone movements
 ```
+
+---
+
+#### Class: `DataRecorder`
+The `DataRecorder` class is designed to record various types of data from a drone or robotic system using the FlightMatrix framework. It can capture visual frames, z-depth images, segmentation frames, and sensor data, all of which are stored in a structured manner for later analysis.
+
+---
+
+##### **Attributes:**
+
+- `bridge (FlightMatrixBridge)`: The bridge object used to interface with the drone or robot's systems.
+- `base_dir (str)`: The base directory where all recorded data will be stored.
+- `record_left_frame (bool)`: Flag indicating whether to record the left visual frame (default: `False`).
+- `record_right_frame (bool)`: Flag indicating whether to record the right visual frame (default: `False`).
+- `record_left_zdepth (bool)`: Flag indicating whether to record the left z-depth frame (default: `False`).
+- `record_right_zdepth (bool)`: Flag indicating whether to record the right z-depth frame (default: `False`).
+- `record_left_seg (bool)`: Flag indicating whether to record the left segmentation frame (default: `False`).
+- `record_right_seg (bool)`: Flag indicating whether to record the right segmentation frame (default: `False`).
+- `record_sensor_data (bool)`: Flag indicating whether to record sensor data (default: `False`).
+- `sensor_data_interval (float)`: The interval at which sensor data is recorded (default: `0.1` seconds).
+- `threads (list)`: List to hold the thread objects for recording data.
+- `stop_event (Event)`: Event used to signal the threads to stop.
+
+---
+
+##### **Methods:**
+
+###### **`__init__(self, bridge: FlightMatrixBridge, base_dir: str, record_left_frame: bool = False, record_right_frame: bool = False, record_left_zdepth: bool = False, record_right_zdepth: bool = False, record_left_seg: bool = False, record_right_seg: bool = False, record_sensor_data: bool = False, record_sensor_data_interval: float = 0.1)`**
+
+**Description:**  
+Initializes the `DataRecorder` class with specified options for recording. It sets up directories for storing the recorded data based on user selections.
+
+**Args:**  
+- `bridge (FlightMatrixBridge)`: An instance of `FlightMatrixBridge` used to interact with the drone/robot.
+- `base_dir (str)`: The directory to store recorded files.
+- `record_left_frame (bool)`: If `True`, records the left visual frame.
+- `record_right_frame (bool)`: If `True`, records the right visual frame.
+- `record_left_zdepth (bool)`: If `True`, records the left z-depth frame.
+- `record_right_zdepth (bool)`: If `True`, records the right z-depth frame.
+- `record_left_seg (bool)`: If `True`, records the left segmentation frame.
+- `record_right_seg (bool)`: If `True`, records the right segmentation frame.
+- `record_sensor_data (bool)`: If `True`, records sensor data.
+- `record_sensor_data_interval (float)`: Time interval for recording sensor data in seconds.
+
+---
+
+###### **`record_frames(self)`**
+
+**Description:**  
+Continuously captures and saves visual frames, z-depth frames, and segmentation frames until the recording is stopped. Each frame is saved with a timestamped filename.
+
+---
+
+###### **`record_sensors(self)`**
+
+**Description:**  
+Records sensor data at specified intervals, saving the readings to a CSV file. It checks for errors in the sensor data and handles them appropriately.
+
+---
+
+###### **`start_recording(self)`**
+
+**Description:**  
+Starts the recording process by launching separate threads for recording frames and sensor data, based on the user’s selections.
+
+---
+
+###### **`stop_recording(self)`**
+
+**Description:**  
+Stops the recording process by signaling the threads to finish and waits for them to join back.
+
+---
+
+##### **Example Usage:**
+
+```python
+if __name__ == "__main__":
+    bridge = FlightMatrixBridge()
+    recorder = DataRecorder(bridge, base_dir="Sample_Recordings", 
+                            record_left_frame=True, 
+                            record_right_frame=True, 
+                            record_left_zdepth=True, 
+                            record_right_zdepth=True, 
+                            record_left_seg=True, 
+                            record_right_seg=True, 
+                            record_sensor_data=True,
+                            record_sensor_data_interval=1)
+    
+    recorder.start_recording()
+
+    time.sleep(10)  # Record for 10 seconds
+
+    recorder.stop_recording()
+```
+
+---
 
 ## Credits
 

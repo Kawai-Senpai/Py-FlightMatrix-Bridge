@@ -1,6 +1,7 @@
 import cv2
 from flightmatrix.bridge import FlightMatrixBridge
 from flightmatrix.utilities import timestamp2string
+import ultraprint.common as p
 
 # Initialize the FlightMatrixBridge
 bridge = FlightMatrixBridge()
@@ -33,12 +34,16 @@ while True:
     cv2.imshow("Left Frame", left_frame)
     cv2.imshow("Right Frame", right_frame)
 
-    cv2.imshow("Left Z-Depth", left_zdepth_data)
-    cv2.imshow("Right Z-Depth", right_zdepth_data)
+    cv2.imshow("Left Z-Depth", left_zdepth)
+    cv2.imshow("Right Z-Depth", right_zdepth)
 
     # Print timestamps for each frame (optional)
-    print(f"Left Frame Timestamp: {left_timestamp}")
-    print(f"Right Frame Timestamp: {right_timestamp}")
+    p.purple(f"Left Frame Timestamp: {left_timestamp}")
+    p.purple(f"Right Frame Timestamp: {right_timestamp}")
+
+    # Print timestamps for z-depth frames (optional)
+    p.lgray(f"Left Z-Depth Timestamp: {left_timestamp}")
+    p.lgray(f"Right Z-Depth Timestamp: {right_timestamp}")
 
     # Break the loop when 'q' is pressed
     if cv2.waitKey(1) & 0xFF == ord('q'):

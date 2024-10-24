@@ -4,6 +4,8 @@ import os
 import cv2
 import csv
 import threading
+import math
+import numpy as np
 from datetime import datetime, timezone
 from flightmatrix.bridge import FlightMatrixBridge
 
@@ -43,6 +45,48 @@ def timestamp2datetime(timestamp):
     dt = datetime.fromtimestamp(timestamp_seconds, tz=timezone.utc)
     
     return dt
+
+#* Function to convert Cartesian coordinates to GPS coordinates
+def cartesian_to_gps(x, y, z, origin_lat=22.583047, origin_lon=88.45859783333334, origin_alt=0, add_noise=False, lat_long_noise_amt=0.0001, alt_noise_amt=0.1, earth_radius=6378137):
+    
+    """
+    Converts Cartesian coordinates to GPS coordinates (latitude, longitude, altitude).
+    Args:
+        x (float): X coordinate in centimeters.
+        y (float): Y coordinate in centimeters.
+        z (float): Z coordinate in centimeters.
+        origin_lat (float, optional): Latitude of the origin point in degrees. Defaults to 22.583047.
+        origin_lon (float, optional): Longitude of the origin point in degrees. Defaults to 88.45859783333334.
+        origin_alt (float, optional): Altitude of the origin point in meters. Defaults to 0.
+        add_noise (bool, optional): Whether to add noise to the GPS coordinates. Defaults to False.
+        lat_long_noise_amt (float, optional): Amount of noise to add to latitude and longitude. Defaults to 0.0001.
+        alt_noise_amt (float, optional): Amount of noise to add to altitude. Defaults to 0.1.
+        earth_radius (float, optional): Radius of the Earth in meters. Defaults to 6378137 (meters).
+    Returns:
+        tuple: A tuple containing the latitude, longitude, and altitude in meters.
+    """
+
+    # Convert cm to meters
+    x = x / 100
+    y = y / 100
+    z = z / 100
+    
+    # Assuming a simple flat Earth model for small distances
+    R = earth_radius  # Radius of Earth in meters
+    d_lat = y / R
+    d_lon = x / (R * math.cos(math.pi * origin_lat / 180))
+    
+    lat = origin_lat + d_lat * 180 / math.pi
+    lon = origin_lon + d_lon * 180 / math.pi
+    alt = origin_alt + z  # Altitude in meters
+
+    if add_noise:
+        # Add noise to the GPS coordinates
+        lat += np.random.normal(0, lat_long_noise_amt)
+        lon += np.random.normal(0, lat_long_noise_amt)
+        alt += np.random.normal(0, alt_noise_amt)
+    
+    return lat, lon, alt
 
 #* Class to control the drone movements and rotations
 class DroneController:
@@ -345,7 +389,8 @@ class DroneController:
 
 #* Class to record data from the drone
 class DataRecorder:
-    def __init__(self, bridge, base_dir, record_left_frame=False, record_right_frame=False, 
+    def __init__(self, bridge: FlightMatrixBridge,
+                base_dir, record_left_frame=False, record_right_frame=False, 
                 record_left_zdepth=False, record_right_zdepth=False, record_left_seg=False, 
                 record_right_seg=False, record_sensor_data=False, record_sensor_data_interval=0.1):
         """
@@ -361,6 +406,7 @@ class DataRecorder:
                     record_right_seg (bool, optional): Whether to record the right segmentation. Defaults to False.
                     record_sensor_data (bool, optional): Whether to record sensor data. Defaults to False.
                     record_sensor_data_interval (float, optional): The interval at which to record sensor data. Defaults to 0.1.
+                    is_recording (bool): Flag to indicate if the recording is currently active.
                 Attributes:
                     bridge: The bridge object to interface with the recording system.
                     base_dir (str): The base directory where recordings will be stored.
@@ -395,6 +441,7 @@ class DataRecorder:
         self.record_sensor_data = record_sensor_data
 
         self.sensor_data_interval = record_sensor_data_interval
+        self.is_recording = False
 
         self.threads = []
         self.stop_event = threading.Event()
@@ -403,30 +450,37 @@ class DataRecorder:
         if self.record_left_frame:
             self.left_frame_dir = os.path.join(self.base_dir, "left_frame")
             os.makedirs(self.left_frame_dir, exist_ok=True)
+            self.bridge.log.info(f"Left frame will be recorded in {self.left_frame_dir}")
 
         if self.record_right_frame:
             self.right_frame_dir = os.path.join(self.base_dir, "right_frame")
             os.makedirs(self.right_frame_dir, exist_ok=True)
+            self.bridge.log.info(f"Right frame will be recorded in {self.right_frame_dir}")
 
         if self.record_left_zdepth:
             self.left_zdepth_dir = os.path.join(self.base_dir, "left_zdepth")
             os.makedirs(self.left_zdepth_dir, exist_ok=True)
+            self.bridge.log.info(f"Left z-depth will be recorded in {self.left_zdepth_dir}")
 
         if self.record_right_zdepth:
             self.right_zdepth_dir = os.path.join(self.base_dir, "right_zdepth")
             os.makedirs(self.right_zdepth_dir, exist_ok=True)
+            self.bridge.log.info(f"Right z-depth will be recorded in {self.right_zdepth_dir}")
 
         if self.record_left_seg:
             self.left_seg_dir = os.path.join(self.base_dir, "left_seg")
             os.makedirs(self.left_seg_dir, exist_ok=True)
+            self.bridge.log.info(f"Left segmentation will be recorded in {self.left_seg_dir}")
 
         if self.record_right_seg:
             self.right_seg_dir = os.path.join(self.base_dir, "right_seg")
             os.makedirs(self.right_seg_dir, exist_ok=True)
+            self.bridge.log.info(f"Right segmentation will be recorded in {self.right_seg_dir}")
 
         if self.record_sensor_data:
             self.sensor_data_file = os.path.join(self.base_dir, "sensor_data.csv")
             self.sensor_data = []  # We'll accumulate sensor data to store it in a JSON file.
+            self.bridge.log.info(f"Sensor data will be recorded in {self.sensor_data_file}")
 
     def record_frames(self):
         """
@@ -644,6 +698,10 @@ class DataRecorder:
             - The `record_sensor_data` attribute should be a boolean indicating whether sensor data recording is enabled.
         """
 
+        if self.is_recording:
+            self.bridge.log.warning("Recording is already in progress.")
+            return
+
         self.stop_event.clear()
         self.threads = []
 
@@ -660,6 +718,9 @@ class DataRecorder:
         for thread in self.threads:
             thread.start()
 
+        self.is_recording = True
+        self.bridge.log.success("Recording started.")
+
     def stop_recording(self):
         """
         Stops the recording process by setting the stop event and joining all threads.
@@ -670,3 +731,14 @@ class DataRecorder:
         self.stop_event.set()
         for thread in self.threads:
             thread.join()
+        
+        self.is_recording = False
+        self.bridge.log.success("Recording stopped.")
+
+    def is_recording_on(self):
+        """
+        Checks if the recording process is currently active.
+        Returns:
+        bool: True if the recording process is active, False otherwise.
+        """
+        return self.is_recording

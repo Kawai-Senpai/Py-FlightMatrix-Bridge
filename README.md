@@ -40,6 +40,7 @@ The project is structured around two primary files:
     2. [Example 2: Sending Movement Commands](#example-2-sending-movement-commands)
     3. [Example 3: Fetching Sensor Data](#example-3-fetching-sensor-data)
     4. [Example 4: Drone Controller](#example-4-drone-controller)
+    5. [Example 5: Data Recorder](#example-5-data-recorder)
 7. [Documentation](#documentation)
     1. [Class: `FlightMatrixBridge`](#class-flightmatrixbridge)
         - [Attributes](#attributes)
@@ -427,6 +428,34 @@ drone.stop()
 # Hover in place and rotate at 0.5 speed for 5 seconds
 drone.hover_and_rotate(0.5, 5)
   
+```
+
+### Example 5: Data Recorder
+
+```python
+
+from flightmatrix.bridge import FlightMatrixBridge
+from flightmatrix.utilities import DataRecorder
+import time
+
+# Example usage (Record data each second for 120 seconds)
+if __name__ == "__main__":
+    bridge = FlightMatrixBridge()
+    recorder = DataRecorder(bridge, base_dir="Sample_Recordings", 
+                            record_left_frame=True, 
+                            record_right_frame=True, 
+                            record_left_zdepth=True, 
+                            record_right_zdepth=True, 
+                            record_left_seg=True, 
+                            record_right_seg=True, 
+                            record_sensor_data=True,
+                            record_sensor_data_interval=1)
+    
+    recorder.start_recording()
+
+    time.sleep(120)  # Record for 120 seconds
+
+    recorder.stop_recording()
 ```
 
 ## Documentation
@@ -889,6 +918,33 @@ datetime_obj = timestamp2datetime(1609459200000)
 
 ---
 
+#### 3. `cartesian_to_gps`
+
+**Description:**  
+Converts Cartesian coordinates to GPS coordinates (latitude, longitude, altitude).
+
+**Args:**  
+- `x (float)`: X coordinate in centimeters.
+- `y (float)`: Y coordinate in centimeters.
+- `z (float)`: Z coordinate in centimeters.
+- `origin_lat (float, optional)`: Latitude of the origin point in degrees. Defaults to 22.583047.
+- `origin_lon (float, optional)`: Longitude of the origin point in degrees. Defaults to 88.45859783333334.
+- `origin_alt (float, optional)`: Altitude of the origin point in meters. Defaults to 0.
+- `add_noise (bool, optional)`: Whether to add noise to the GPS coordinates. Defaults to False.
+- `lat_long_noise_amt (float, optional)`: Amount of noise to add to latitude and longitude. Defaults to 0.0001.
+- `alt_noise_amt (float, optional)`: Amount of noise to add to altitude. Defaults to 0.1.
+- `earth_radius (float, optional)`: Radius of the Earth in meters. Defaults to 6378137 (meters).
+
+**Returns:**  
+- `tuple`: A tuple containing the latitude, longitude, and altitude in meters.
+
+**Example:**
+```python
+latitude, longitude, altitude = cartesian_to_gps(1000, 2000, 300)
+```
+
+---
+
 #### Class: `DroneController`
 This class provides an interface to control the drone's movements by sending commands to the flight matrix system. It allows the drone to move along the x, y, and z axes and rotate around the roll, pitch, and yaw axes.
 
@@ -1226,6 +1282,14 @@ if __name__ == "__main__":
 
     recorder.stop_recording()
 ```
+
+###### **`is_recording_on(self)`**
+
+**Description:**
+Checks if the recording process is currently active.
+
+**Returns:**
+- `bool`: `True` if recording is active, `False` otherwise.
 
 ---
 

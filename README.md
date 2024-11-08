@@ -50,13 +50,13 @@ The project is structured around two primary files:
         1. [`timestamp2string`](#timestamp2stringtimestamp)
         2. [`timestamp2datetime`](#timestamp2datetimetimestamp)
         3. [`cartesian_to_gps`](#cartesian_to_gps)
-        4. [Class: `DroneController`](#class-dronecontroller)
+    3. [Class: `DroneController`](#class-dronecontroller)
           - [Attributes](#attributes)
           - [Methods](#methods)
-        5. [Class: `DataRecorder`](#class-datarecorder)
+    4. [Class: `DataRecorder`](#class-datarecorder)
           - [Attributes](#attributes)
           - [Methods](#methods)
-    8. [Data Streaming with DataStreamer](#data-streaming-with-datastreamer)
+    5. [Class: `DataStreamer`](#data-streaming-with-datastreamer)
 9. [Credits](#credits)
 
 ## Introduction

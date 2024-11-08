@@ -154,20 +154,73 @@ The system uses the following units for sensor data:
 
 ### Axis System
 
-The system uses the following axis system:
-- Y-axis: Forward
-- -Y-axis: Backward
-- -X-axis: Left
-- X-axis: Right
-- -Z-axis: Bottom
-- Z-axis: Top
+The axis system differs slightly between the software interface and the API. Below is a detailed explanation for both.
 
-Rotation values are in degrees and are labled roll, pitch, and yaw.
-- X-axis: Roll
-- Y-axis: Pitch
-- Z-axis: Yaw
+#### Inside the Software
 
-The API and the software system follows this axis system unless otherwise specified.
+When adjusting camera positions or configuring movement multipliers within the software, the following axis system is used:
+
+| Direction | Axis |
+|-----------|------|
+| Forward   | Y    |
+| Backward  | -Y   |
+| Left      | -X   |
+| Right     | X    |
+| Up        | Z    |
+| Down      | -Z   |
+
+Rotation values are in degrees and are labeled roll, pitch, and yaw:
+
+| Rotation | Axis |
+|----------|------|
+| Roll     | X    |
+| Pitch    | Y    |
+| Yaw      | Z    |
+
+**Axis Orientation:**
+```
+       Z (Up)
+        |
+        |
+        |
+        O------ X (Right)
+       /
+      /
+     Y (Forward)
+```
+
+#### In the API
+
+The API uses a different axis system for movement commands and sensor data:
+
+| Direction | Axis |
+|-----------|------|
+| Forward   | X    |
+| Backward  | -X   |
+| Left      | -Y   |
+| Right     | X    |
+| Up        | Z    |
+| Down      | -Z   |
+
+Rotation values are in degrees and are labeled roll, pitch, and yaw:
+
+| Rotation | Axis |
+|----------|------|
+| Roll     | X    |
+| Pitch    | Y    |
+| Yaw      | Z    |
+
+**Axis Orientation:**
+```
+       Z (Up)
+        |
+        |
+        |
+        O------ Y (Right)
+       /
+      /
+     X (Forward)
+```
 
 ### Logging Functions
 

@@ -110,8 +110,10 @@ class DroneController:
         rotate_yaw(value): Rotate the drone in yaw.
         ascend(value): Increase the drone's altitude.
         descend(value): Decrease the drone's altitude.
-        move_forward(value): Move the drone forward (positive y-axis).
-        move_backward(value): Move the drone backward (negative y-axis).
+        move_forward(value): Move the drone forward (positive x-axis).
+        move_backward(value): Move the drone backward (negative x-axis).
+        move_left(value): Move the drone left (negative y-axis).
+        move_right(value): Move the drone right (positive y-axis).
         stop_movement(): Stop all movement (x, y, z).
         stop_rotation(): Stop all rotation (roll, pitch, yaw).
         stop(): Stop all movement and rotation.
@@ -262,29 +264,51 @@ class DroneController:
         self.current_z -= value
         self._send_command()
 
-    # Function to move forward (positive y-axis)
+    # Function to move forward (positive x-axis)
     def move_forward(self, value):
         """
         Moves the current position forward by a specified value.
 
         Parameters:
-        value (int or float): The amount to move forward. This value is added to the current y-coordinate.
+        value (int or float): The amount to move forward. This value is added to the current x-coordinate.
 
         Returns:
         None
         """
-        self.current_y += value
+        self.current_x += value
         self._send_command()
 
-    # Function to move backward (negative y-axis)
+    # Function to move backward (negative x-axis)
     def move_backward(self, value):
         """
         Moves the current position backward by a specified value.
 
         Parameters:
-        value (int or float): The amount to move backward. This value will be subtracted from the current y-coordinate.
+        value (int or float): The amount to move backward. This value will be subtracted from the current x-coordinate.
+        """
+        self.current_x -= value
+        self._send_command()
+
+    # Function to move left (negative y-axis)
+    def move_left(self, value):
+        """
+        Moves the current position left by a specified value.
+
+        Parameters:
+        value (int or float): The amount to move left. This value will be subtracted from the current y-coordinate.
         """
         self.current_y -= value
+        self._send_command()
+
+    # Function to move right (positive y-axis)
+    def move_right(self, value):
+        """
+        Moves the current position right by a specified value.
+
+        Parameters:
+        value (int or float): The amount to move right. This value will be added to the current y-coordinate.
+        """
+        self.current_y += value
         self._send_command()
 
     # Stop only movement (x, y, z)

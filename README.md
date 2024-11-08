@@ -1379,7 +1379,7 @@ Use the `subscribe` method to subscribe to the desired data streams and provide 
 
 ```python
 import cv2
-import flightmatrix.bridge import FlightMatrixBridge
+from flightmatrix.bridge import FlightMatrixBridge
 from flightmatrix.utilities import DataStreamer
 
 def left_frame_callback(left_frame_data):
@@ -1420,6 +1420,12 @@ def right_seg_callback(right_seg_data):
 
 def sensor_data_callback(sensor_data):
     print("Sensor Data:", sensor_data)
+
+# Initialize the FlightMatrixBridge
+bridge = FlightMatrixBridge()
+
+# Initialize the DataStreamer
+streamer = DataStreamer(bridge)
 
 # Subscribe to the left frame data stream
 streamer.subscribe("left_frame", left_frame_callback, interval=0.1)

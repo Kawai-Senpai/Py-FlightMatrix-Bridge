@@ -1,4 +1,3 @@
-
 from multiprocessing import shared_memory
 import numpy as np
 from ultraprint.logging import logger
@@ -154,7 +153,7 @@ class FlightMatrixBridge:
 
         Attributes:
             self.memory_names (dict): A dictionary where keys are identifiers and values are 
-                                      the names of the shared memory blocks.
+                                    the names of the shared memory blocks.
             self.shm (dict): A dictionary to store the connected shared memory blocks.
             self.shm_timestamps (dict): A dictionary to store the connected timestamp shared 
                                         memory blocks.
@@ -205,6 +204,25 @@ class FlightMatrixBridge:
             self.shm['movement_command'] = shared_memory.SharedMemory(name=self.memory_names['movement_command'], create=False)
             self.log.info(f"Attached to existing shared memory block '{self.memory_names['movement_command']}'")
 
+    def _connect_shared_memory_for_key(self, key):
+        """
+        Attempts to connect to shared memory for a specific key.
+        """
+        name = self.memory_names.get(key)
+        if not name:
+            self.log.warning(f"No shared memory name for key '{key}'")
+            return
+        try:
+            # Attempt to connect to shared memory
+            self.shm[key] = shared_memory.SharedMemory(name=name, create=False)
+            timestamp_name = f"{name}_time"
+            self.shm_timestamps[key] = shared_memory.SharedMemory(name=timestamp_name, create=False)
+            self.log.info(f"Connected to shared memory block for '{key}'")
+        except FileNotFoundError:
+            self.shm[key] = None
+            self.shm_timestamps[key] = None
+            self.log.warning(f"'{key}' shared memory not available")
+
     def _get_frame(self, key, channels=3):
         """
         Retrieve a frame from shared memory.
@@ -221,9 +239,13 @@ class FlightMatrixBridge:
         """
 
         if self.shm.get(key) is None:
-            # Warn if the shared memory is not available
-            self.log.warning(f"'{key}' is not being broadcasted or shared memory not available")
-            return {'frame': None, 'timestamp': None, 'error': 'Shared memory not available'}
+            self.log.warning(f"'{key}' shared memory not available, attempting to reconnect...")
+            # Try to reconnect to shared memory
+            self._connect_shared_memory_for_key(key)
+            if self.shm.get(key) is None:
+                # Warn if the shared memory is still not available
+                self.log.warning(f"'{key}' is not being broadcasted or shared memory not available")
+                return {'frame': None, 'timestamp': None, 'error': 'Shared memory not available'}
 
         expected_size = self.width * self.height * channels if channels == 3 else self.width * self.height
         if self.shm[key].size < expected_size:
@@ -304,19 +326,22 @@ class FlightMatrixBridge:
         """
 
         if self.shm.get('sensor_data') is None:
-            self.log.warning("Sensor data memory not available")
-
-            return dict(
-                location=None,
-                orientation=None,
-                gyroscope=None,
-                accelerometer=None,
-                magnetometer=None,
-                lidar=None,
-                collision=None,
-                timestamp=None,
-                error = 'Sensor data memory not available'
-            )
+            self.log.warning("Sensor data memory not available, attempting to reconnect...")
+            # Try to reconnect to shared memory
+            self._connect_shared_memory_for_key('sensor_data')
+            if self.shm.get('sensor_data') is None:
+                self.log.warning("Sensor data memory still not available")
+                return dict(
+                    location=None,
+                    orientation=None,
+                    gyroscope=None,
+                    accelerometer=None,
+                    magnetometer=None,
+                    lidar=None,
+                    collision=None,
+                    timestamp=None,
+                    error='Sensor data memory not available'
+                )
 
         # Assuming 24 floats in the sensor data (as per your mapping)
         sensor_array = np.ndarray((24,), dtype=np.float32, buffer=self.shm['sensor_data'].buf[:96])
@@ -341,9 +366,7 @@ class FlightMatrixBridge:
         """
         Sends a movement command to the shared memory.
         Parameters:
-        x (float): The x-coordinate for the movement command.
-        y (float): The y-coordinate for the movement command.
-        z (float): The z-coordinate for the movement command.
+        x (float): The x-coordinate for thct command.
         roll (float): The roll angle for the movement command.
         pitch (float): The pitch angle for the movement command.
         yaw (float): The yaw angle for the movement command.
@@ -352,8 +375,12 @@ class FlightMatrixBridge:
         """
 
         if self.shm.get('movement_command') is None:
-            self.log.warning("Movement command memory not available")
-            return
+            self.log.warning("Movement command memory not available, attempting to reconnect...")
+            # Try to reconnect to shared memory
+            self._initialize_movement_command_memory()
+            if self.shm.get('movement_command') is None:
+                self.log.warning("Movement command memory still not available")
+                return
 
         command = np.array([x, y, z, roll, pitch, yaw], dtype=np.float32)
         self._write_movement_command(command)

@@ -742,3 +742,109 @@ class DataRecorder:
         bool: True if the recording process is active, False otherwise.
         """
         return self.is_recording
+
+#* Class to stream data from the drone
+class DataStreamer:
+    """
+    A class to stream data from the Flight Matrix system using callbacks.
+    Allows users to subscribe to specific data streams and provides mechanisms
+    to fetch data in parallel using threads.
+    """
+
+    def __init__(self, bridge):
+        """
+        Initialize the DataStreamer with a FlightMatrixBridge instance.
+        Args:
+            bridge (FlightMatrixBridge): An instance of FlightMatrixBridge to interact with the shared memory.
+        """
+        self.bridge = bridge
+        self.subscriptions = {}
+        self.threads = {}
+        self.stop_events = {}
+
+    def subscribe(self, data_type, callback, interval=0):
+        """
+        Subscribe to a specific data stream.
+        Args:
+            data_type (str): The type of data to subscribe to (e.g., 'left_frame', 'sensor_data').
+            callback (function): The function to call when new data is available.
+            interval (float): The interval in seconds at which to fetch data (set to 0 for as fast as possible).
+        """
+        if data_type in self.subscriptions:
+            print(f"Already subscribed to {data_type}")
+            return
+
+        stop_event = threading.Event()
+        self.stop_events[data_type] = stop_event
+
+        thread = threading.Thread(target=self._stream_data, args=(data_type, callback, interval, stop_event))
+        thread.start()
+        self.threads[data_type] = thread
+        self.subscriptions[data_type] = {
+            'callback': callback,
+            'interval': interval
+        }
+
+    def unsubscribe(self, data_type):
+        """
+        Unsubscribe from a specific data stream.
+        Args:
+            data_type (str): The type of data to unsubscribe from.
+        """
+        if data_type in self.subscriptions:
+            self.stop_events[data_type].set()
+            self.threads[data_type].join()
+            del self.subscriptions[data_type]
+            del self.threads[data_type]
+            del self.stop_events[data_type]
+        else:
+            print(f"Not subscribed to {data_type}")
+
+    def _stream_data(self, data_type, callback, interval, stop_event):
+        """
+        Internal method to fetch data and call the callback function.
+        Args:
+            data_type (str): The type of data to fetch.
+            callback (function): The callback function to call with the data.
+            interval (float): The interval in seconds at which to fetch data.
+            stop_event (threading.Event): Event to signal when to stop streaming.
+        """
+        data_fetcher = self._get_data_fetcher(data_type)
+        if not data_fetcher:
+            print(f"Invalid data type: {data_type}. Available types: 'left_frame', 'right_frame', 'left_zdepth', 'right_zdepth', 'left_seg', 'right_seg', 'sensor_data'")
+            return
+
+        while not stop_event.is_set():
+            data = data_fetcher()
+            callback(data)
+            if interval > 0:
+                time.sleep(interval)
+
+    def _get_data_fetcher(self, data_type):
+        """
+        Get the appropriate data fetching function from the bridge based on data type.
+        Args:
+            data_type (str): The type of data.
+        Returns:
+            function: The data fetching function.
+        """
+        fetcher_mapping = {
+            'left_frame': self.bridge.get_left_frame,
+            'right_frame': self.bridge.get_right_frame,
+            'left_zdepth': self.bridge.get_left_zdepth,
+            'right_zdepth': self.bridge.get_right_zdepth,
+            'left_seg': self.bridge.get_left_seg,
+            'right_seg': self.bridge.get_right_seg,
+            'sensor_data': self.bridge.get_sensor_data,
+        }
+        return fetcher_mapping.get(data_type)
+
+    def stop_all(self):
+        """
+        Stop all data streams and threads.
+        """
+        data_types = list(self.subscriptions.keys())
+        for data_type in data_types:
+            self.unsubscribe(data_type)
+
+

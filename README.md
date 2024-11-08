@@ -15,8 +15,9 @@ The project is structured around two primary files:
 
 1. [Introduction](#introduction)
 2. [Features](#features)
-3. [Installation](#installation)
-4. [Usage](#usage)
+3. [Controls](#controls)
+4. [Installation](#installation)
+5. [Usage](#usage)
     1. [Initializing the FlightMatrixBridge](#initializing-the-flightmatrixbridge)
     2. [Units](#units)
     3. [Axis System](#axis-system)
@@ -27,7 +28,7 @@ The project is structured around two primary files:
         - [Sending Movement Commands](#sending-movement-commands)
     6. [Resolution & Noise Configuration](#resolution--noise-configuration)
     7. [Timestamp Utilities](#timestamp-utilities)
-5. [Detailed Functionality](#detailed-functionality)
+6. [Detailed Functionality](#detailed-functionality)
     - [Initialization](#initialization)
     - [Shared Memory Management](#shared-memory-management)
     - [Frame Handling](#frame-handling)
@@ -35,13 +36,13 @@ The project is structured around two primary files:
     - [Movement Command Management](#movement-command-management)
     - [Logging](#logging)
     - [Noise Application](#noise-application)
-6. [Examples](#examples)
+7. [Examples](#examples)
     1. [Example 1: Fetching Frames](#example-1-fetching-frames)
     2. [Example 2: Sending Movement Commands](#example-2-sending-movement-commands)
     3. [Example 3: Fetching Sensor Data](#example-3-fetching-sensor-data)
     4. [Example 4: Drone Controller](#example-4-drone-controller)
     5. [Example 5: Data Recorder](#example-5-data-recorder)
-7. [Documentation](#documentation)
+8. [Documentation](#documentation)
     1. [Class: `FlightMatrixBridge`](#class-flightmatrixbridge)
         - [Attributes](#attributes)
         - [Methods](#methods) 
@@ -55,7 +56,8 @@ The project is structured around two primary files:
         5. [Class: `DataRecorder`](#class-datarecorder)
           - [Attributes](#attributes)
           - [Methods](#methods)
-8. [Credits](#credits)
+    8. [Data Streaming with DataStreamer](#data-streaming-with-datastreamer)
+9. [Credits](#credits)
 
 ## Introduction
 
@@ -96,6 +98,25 @@ The **FlightMatrixBridge** API provides a simple and efficient way to interact w
 - **Noise Simulation**: Add configurable levels of noise to sensor data for testing robustness.
 - **Flexible Resolution Handling**: Easily set and adjust resolution for frames.
 - **Timestamp Management**: Convert timestamps into human-readable formats and handle system-wide timing data.
+
+## Controls
+
+The control scheme for the game includes various movement and action commands to enhance gameplay. Players can move forward using the W key or the Gamepad Left Thumbstick Up, and backward with the S key or the Gamepad Left Thumbstick Down. Lateral movement is achieved with the A and D keys or the Gamepad Left Thumbstick Left and Right, respectively. For vertical movement, players can ascend by pressing the Space Bar or Left Shift, and descend using the E key. Rotation is controlled with the arrow keys or the Gamepad Right Thumbstick, allowing players to turn and tilt in different directions. Additional controls include moving left and right with the Q and E keys, pausing the game with the Pause key or P, and exiting with the Escape key. Players can also spawn a human AI character at their current location by pressing H, and return to the starting location automatically by pressing R after descending the drone to ground level.
+
+| Action                          | Keyboard/Mouse          | Gamepad                    |
+|---------------------------------|-------------------------|----------------------------|
+| Move Forward                    | W                       | Left Thumbstick Up         |
+| Move Backward                   | S                       | Left Thumbstick Down       |
+| Move Left                       | A                       | Left Thumbstick Left       |
+| Move Right                      | D                       | Left Thumbstick Right      |
+| Ascend                          | Space Bar / Left Shift  |                            |
+| Descend                         | E                       |                            |
+| Rotate                          | Arrow Keys              | Right Thumbstick           |
+| Move Left/Right                 | Q / E                   |                            |
+| Pause                           | Pause / P               |                            |
+| Exit                            | Escape                  |                            |
+| Spawn Human AI Character        | H                       |                            |
+| Return to Starting Location     | R                       |                            |
 
 ## Installation
 
@@ -1293,6 +1314,136 @@ Checks if the recording process is currently active.
 - `bool`: `True` if recording is active, `False` otherwise.
 
 ---
+
+## Data Streaming with DataStreamer
+
+The `DataStreamer` class provides a convenient way to stream data from the Flight Matrix system using callbacks. It allows you to subscribe to specific data streams (e.g., left frame, sensor data) and specify callback functions that are called whenever new data is available. Each data stream runs in its own thread, enabling parallel data fetching without one stream waiting for the other. You can also specify the interval at which data is fetched or set it to zero for the fastest possible streaming.
+
+### Features
+
+- **Subscribe to Data Streams**: Subscribe to specific data types you are interested in.
+- **Parallel Data Fetching**: Each data stream runs in its own thread for efficient parallel processing.
+- **Custom Callbacks**: Provide your own callback functions to process the data as it arrives.
+- **Adjustable Fetch Interval**: Control the rate at which data is fetched by specifying the interval.
+
+### Usage
+
+#### Import and Initialize
+
+```python
+from flightmatrix.bridge import FlightMatrixBridge
+from flightmatrix.utilities import DataStreamer
+
+# Initialize the FlightMatrixBridge
+bridge = FlightMatrixBridge()
+
+# Initialize the DataStreamer
+streamer = DataStreamer(bridge)
+```
+
+#### Subscribe to Data Streams
+
+```python
+
+import cv2
+
+# Define a callback function for left frame data
+def left_frame_callback(frame_data):
+    frame = frame_data['frame']
+    timestamp = frame_data['timestamp']
+    cv2.imshow("Left Frame", frame)
+    print("Left Frame Timestamp:", timestamp)
+
+# Subscribe to the left frame data stream
+streamer.subscribe("left_frame", left_frame_callback)
+
+# Define a callback function for sensor data
+def sensor_data_callback(sensor_data):
+    print("Sensor Data:", sensor_data)
+
+# Subscribe to the sensor data stream
+streamer.subscribe("sensor_data", sensor_data_callback)
+```
+
+### Available Data Streams
+
+- **left_frame**: Left visual frame data.
+- **right_frame**: Right visual frame data.
+- **left_zdepth**: Left z-depth frame data.
+- **right_zdepth**: Right z-depth frame data.
+- **left_seg**: Left segmentation frame data.
+- **right_seg**: Right segmentation frame data.
+- **sensor_data**: Sensor data from the drone or robot.
+
+Use the `subscribe` method to subscribe to the desired data streams and provide a callback function to process the data as it arrives. The callback function will be called with the data as an argument whenever new data is available. for example, the `left_frame_callback` function will be called with the left frame data whenever a new frame is available. 
+
+### Subscribing to Data Streams
+
+```python
+import cv2
+import flightmatrix.bridge import FlightMatrixBridge
+from flightmatrix.utilities import DataStreamer
+
+def left_frame_callback(left_frame_data):
+    left_frame = left_frame_data['frame']
+    left_timestamp = left_frame_data['timestamp']
+    cv2.imshow("Left Frame", left_frame)
+    print("Left Frame Timestamp:", left_timestamp)
+
+def right_frame_callback(right_frame_data):
+    right_frame = right_frame_data['frame']
+    right_timestamp = right_frame_data['timestamp']
+    cv2.imshow("Right Frame", right_frame)
+    print("Right Frame Timestamp:", right_timestamp)
+
+def left_zdepth_callback(left_zdepth_data):
+    left_zdepth = left_zdepth_data['frame']
+    left_timestamp = left_zdepth_data['timestamp']
+    cv2.imshow("Left Z-Depth", left_zdepth)
+    print("Left Z-Depth Timestamp:", left_timestamp)
+
+def right_zdepth_callback(right_zdepth_data):
+    right_zdepth = right_zdepth_data['frame']
+    right_timestamp = right_zdepth_data['timestamp']
+    cv2.imshow("Right Z-Depth", right_zdepth)
+    print("Right Z-Depth Timestamp:", right_timestamp)
+
+def left_seg_callback(left_seg_data):
+    left_seg = left_seg_data['frame']
+    left_timestamp = left_seg_data['timestamp']
+    cv2.imshow("Left Segmentation", left_seg)
+    print("Left Segmentation Timestamp:", left_timestamp)
+
+def right_seg_callback(right_seg_data):
+    right_seg = right_seg_data['frame']
+    right_timestamp = right_seg_data['timestamp']
+    cv2.imshow("Right Segmentation", right_seg)
+    print("Right Segmentation Timestamp:", right_timestamp)
+
+def sensor_data_callback(sensor_data):
+    print("Sensor Data:", sensor_data)
+
+# Subscribe to the left frame data stream
+streamer.subscribe("left_frame", left_frame_callback, interval=0.1)
+
+# Subscribe to the right frame data stream
+streamer.subscribe("right_frame", right_frame_callback, interval=0.1)
+
+# Subscribe to the left z-depth data stream
+streamer.subscribe("left_zdepth", left_zdepth_callback, interval=0.1)
+
+# Subscribe to the right z-depth data stream
+streamer.subscribe("right_zdepth", right_zdepth_callback, interval=0.1)
+
+# Subscribe to the left segmentation data stream
+streamer.subscribe("left_seg", left_seg_callback, interval=0.1)
+
+# Subscribe to the right segmentation data stream
+streamer.subscribe("right_seg", right_seg_callback, interval=0.1)
+
+# Subscribe to the sensor data stream
+streamer.subscribe("sensor_data", sensor_data_callback, interval=0.1)
+```
 
 ## Credits
 

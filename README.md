@@ -186,7 +186,7 @@ Rotation values are in degrees and are labeled roll, pitch, and yaw:
         O------ X (Right)
        /
       /
-     Y (Forward)
+    -Y (Backward)
 ```
 
 #### In the API
@@ -219,7 +219,7 @@ Rotation values are in degrees and are labeled roll, pitch, and yaw:
         O------ Y (Right)
        /
       /
-     X (Forward)
+    -X (Backward)
 ```
 
 ### Logging Functions

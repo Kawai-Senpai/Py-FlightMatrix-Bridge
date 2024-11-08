@@ -1386,36 +1386,66 @@ def left_frame_callback(left_frame_data):
     left_frame = left_frame_data['frame']
     left_timestamp = left_frame_data['timestamp']
     cv2.imshow("Left Frame", left_frame)
+
+    # Break the loop when 'q' is pressed
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        cv2.destroyAllWindows()
+
     print("Left Frame Timestamp:", left_timestamp)
 
 def right_frame_callback(right_frame_data):
     right_frame = right_frame_data['frame']
     right_timestamp = right_frame_data['timestamp']
     cv2.imshow("Right Frame", right_frame)
+
+    # Break the loop when 'q' is pressed
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        cv2.destroyAllWindows()
+
     print("Right Frame Timestamp:", right_timestamp)
 
 def left_zdepth_callback(left_zdepth_data):
     left_zdepth = left_zdepth_data['frame']
     left_timestamp = left_zdepth_data['timestamp']
     cv2.imshow("Left Z-Depth", left_zdepth)
+
+    # Break the loop when 'q' is pressed
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        cv2.destroyAllWindows()
+
     print("Left Z-Depth Timestamp:", left_timestamp)
 
 def right_zdepth_callback(right_zdepth_data):
     right_zdepth = right_zdepth_data['frame']
     right_timestamp = right_zdepth_data['timestamp']
     cv2.imshow("Right Z-Depth", right_zdepth)
+
+    # Break the loop when 'q' is pressed
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        cv2.destroyAllWindows()
+
     print("Right Z-Depth Timestamp:", right_timestamp)
 
 def left_seg_callback(left_seg_data):
     left_seg = left_seg_data['frame']
     left_timestamp = left_seg_data['timestamp']
     cv2.imshow("Left Segmentation", left_seg)
+
+    # Break the loop when 'q' is pressed
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        cv2.destroyAllWindows()
+
     print("Left Segmentation Timestamp:", left_timestamp)
 
 def right_seg_callback(right_seg_data):
     right_seg = right_seg_data['frame']
     right_timestamp = right_seg_data['timestamp']
     cv2.imshow("Right Segmentation", right_seg)
+
+    # Break the loop when 'q' is pressed
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        cv2.destroyAllWindows()
+
     print("Right Segmentation Timestamp:", right_timestamp)
 
 def sensor_data_callback(sensor_data):
@@ -1428,7 +1458,7 @@ bridge = FlightMatrixBridge()
 streamer = DataStreamer(bridge)
 
 # Subscribe to the left frame data stream
-streamer.subscribe("left_frame", left_frame_callback, interval=0.1)
+streamer.subscribe("left_frame", left_frame_callback, interval=0)
 
 # Subscribe to the right frame data stream
 streamer.subscribe("right_frame", right_frame_callback, interval=0.1)

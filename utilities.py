@@ -1,4 +1,3 @@
-
 import time
 import os
 import cv2
@@ -136,6 +135,7 @@ class DroneController:
             current_yaw (float): The current yaw angle, initialized to 0.0.
         """
         self.bridge = bridge_object
+        self.log = bridge_object.log  # Extract logger from bridge_object
         
         # Initialize movement parameters to zero
         self.current_x = 0.0
@@ -445,6 +445,7 @@ class DataRecorder:
 
         self.threads = []
         self.stop_event = threading.Event()
+        self.log = bridge.log  # Extract logger from bridge
 
         # Dynamically create folders based on the user's choices
         if self.record_left_frame:
@@ -635,7 +636,7 @@ class DataRecorder:
 
                     # Check for errors
                     if sensor_data.get('error'):
-                        print("Error fetching sensor data:", sensor_data['error'])
+                        self.log.error(f"Error fetching sensor data: {sensor_data['error']}")
                         continue
                     
                     # Extract sensor readings
@@ -699,7 +700,7 @@ class DataRecorder:
         """
 
         if self.is_recording:
-            self.bridge.log.warning("Recording is already in progress.")
+            self.log.warning("Recording is already in progress.")
             return
 
         self.stop_event.clear()
@@ -761,6 +762,7 @@ class DataStreamer:
         self.subscriptions = {}
         self.threads = {}
         self.stop_events = {}
+        self.log = bridge.log  # Extract logger from bridge
 
     def subscribe(self, data_type, callback, interval=0):
         """
@@ -771,7 +773,7 @@ class DataStreamer:
             interval (float): The interval in seconds at which to fetch data (set to 0 for as fast as possible).
         """
         if data_type in self.subscriptions:
-            print(f"Already subscribed to {data_type}")
+            self.log.warning(f"Already subscribed to {data_type}")
             return
 
         stop_event = threading.Event()
@@ -798,7 +800,7 @@ class DataStreamer:
             del self.threads[data_type]
             del self.stop_events[data_type]
         else:
-            print(f"Not subscribed to {data_type}")
+            self.log.warning(f"Not subscribed to {data_type}")
 
     def _stream_data(self, data_type, callback, interval, stop_event):
         """
@@ -811,7 +813,7 @@ class DataStreamer:
         """
         data_fetcher = self._get_data_fetcher(data_type)
         if not data_fetcher:
-            print(f"Invalid data type: {data_type}. Available types: 'left_frame', 'right_frame', 'left_zdepth', 'right_zdepth', 'left_seg', 'right_seg', 'sensor_data'")
+            self.log.error(f"Invalid data type: {data_type}. Available types: 'left_frame', 'right_frame', 'left_zdepth', 'right_zdepth', 'left_seg', 'right_seg', 'sensor_data'")
             return
 
         while not stop_event.is_set():

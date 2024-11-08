@@ -101,20 +101,20 @@ The **FlightMatrixBridge** API provides a simple and efficient way to interact w
 
 ## Controls
 
-| Action                          | Keyboard/Mouse          | Gamepad                    |
-|---------------------------------|-------------------------|----------------------------|
-| Move Forward                    | W                       | Left Thumbstick Up         |
-| Move Backward                   | S                       | Left Thumbstick Down       |
-| Move Left                       | A                       | Left Thumbstick Left       |
-| Move Right                      | D                       | Left Thumbstick Right      |
-| Ascend                          | Space Bar               |                            |
-| Descend                         | Left Shift              |                            |
-| Rotate                          | Arrow Keys              | Right Thumbstick           |
-| Move Left/Right                 | Q / E                   |                            |
-| Pause                           | Escape / Pause / P      |                            |
-| Exit                            | Escape / Pause / P      |                            |
-| Spawn Human AI Character        | H                       |                            |
-| Return to Starting Location     | R                       |                            |
+| Action                          | Keyboard/Mouse          |
+|---------------------------------|-------------------------|
+| Move Forward                    | W                       |
+| Move Backward                   | S                       |
+| Move Left                       | A                       |
+| Move Right                      | D                       |
+| Ascend                          | Space Bar               |
+| Descend                         | Left Shift              |
+| Rotate (Yaw, Pitch, Roll)       | Arrow Keys              |
+| Move Left/Right                 | Q / E                   |
+| Pause                           | Escape / Pause / P      |
+| Exit                            | Escape / Pause / P      |
+| Spawn Human AI Character        | H                       |
+| Return to Starting Location     | R                       |
 
 ## Installation
 

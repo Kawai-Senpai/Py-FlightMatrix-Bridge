@@ -101,20 +101,18 @@ The **FlightMatrixBridge** API provides a simple and efficient way to interact w
 
 ## Controls
 
-The control scheme for the game includes various movement and action commands to enhance gameplay. Players can move forward using the W key or the Gamepad Left Thumbstick Up, and backward with the S key or the Gamepad Left Thumbstick Down. Lateral movement is achieved with the A and D keys or the Gamepad Left Thumbstick Left and Right, respectively. For vertical movement, players can ascend by pressing the Space Bar or Left Shift, and descend using the E key. Rotation is controlled with the arrow keys or the Gamepad Right Thumbstick, allowing players to turn and tilt in different directions. Additional controls include moving left and right with the Q and E keys, pausing the game with the Pause key or P, and exiting with the Escape key. Players can also spawn a human AI character at their current location by pressing H, and return to the starting location automatically by pressing R after descending the drone to ground level.
-
 | Action                          | Keyboard/Mouse          | Gamepad                    |
 |---------------------------------|-------------------------|----------------------------|
 | Move Forward                    | W                       | Left Thumbstick Up         |
 | Move Backward                   | S                       | Left Thumbstick Down       |
 | Move Left                       | A                       | Left Thumbstick Left       |
 | Move Right                      | D                       | Left Thumbstick Right      |
-| Ascend                          | Space Bar / Left Shift  |                            |
-| Descend                         | E                       |                            |
+| Ascend                          | Space Bar               |                            |
+| Descend                         | Left Shift              |                            |
 | Rotate                          | Arrow Keys              | Right Thumbstick           |
 | Move Left/Right                 | Q / E                   |                            |
-| Pause                           | Pause / P               |                            |
-| Exit                            | Escape                  |                            |
+| Pause                           | Escape / Pause / P      |                            |
+| Exit                            | Escape / Pause / P      |                            |
 | Spawn Human AI Character        | H                       |                            |
 | Return to Starting Location     | R                       |                            |
 

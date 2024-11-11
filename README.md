@@ -1541,9 +1541,8 @@ streamer.subscribe("sensor_data", sensor_data_callback, interval=0.1)
 
 ### Components
 
-1. **Server (`Server.py`)**
-2. **Client (`Examples/8. Client.py`)**
-3. **DataStreamer**
+1. **Server (`FlightMatrixServer`)**
+2. **Client (`FlightMatrixClient`)**
 
 ### Server Setup
 
@@ -1576,15 +1575,17 @@ Clients connect to the server to receive real-time data streams. The `FlightMatr
 - `receive_data()`: Receives data from the server.
 - `disconnect()`: Disconnects the client from the server.
 
-### DataStreamer
-
-The `DataStreamer` class offers a streamlined way to handle data streaming with callback functions, ensuring that data processing is handled efficiently and without blocking other operations.
-
 #### Features
 
-- **Subscribe to Data Streams**: Define which data types to receive (e.g., sensor data, frames).
-- **Parallel Data Fetching**: Each data stream operates in its own thread, allowing simultaneous processing.
 - **Customizable Intervals**: Set the frequency of data retrieval or opt for the fastest possible streaming.
+- **Data Subscriptions**: Subscribe to specific data streams based on your requirements.
+- **Data Handling**: Process received data using custom callback functions.
+- **Movement Commands**: Send movement commands to control the drone or robot remotely.
+- **Error Handling**: Manage exceptions and ensure reliable communication between the server and clients.
+- **Efficient Data Transmission**: Optimize data transfer by sending data in manageable chunks.
+- **Client Disconnection**: Safely disconnect clients from the server to maintain network integrity.
+- **Real-Time Communication**: Enable real-time data streaming for monitoring and control applications.
+- **Multiple Client Support**: Connect multiple clients to the server for simultaneous data transmission.
 
 ### Usage
 

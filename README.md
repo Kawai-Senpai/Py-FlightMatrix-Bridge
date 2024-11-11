@@ -57,7 +57,8 @@ The project is structured around two primary files:
           - [Attributes](#attributes)
           - [Methods](#methods)
     5. [Class: `DataStreamer`](#data-streaming-with-datastreamer)
-9. [Credits](#credits)
+9. [Network Streaming](#network-streaming)
+10. [Credits](#credits)
 
 ## Introduction
 
@@ -1530,6 +1531,143 @@ streamer.subscribe("right_seg", right_seg_callback, interval=0.1)
 
 # Subscribe to the sensor data stream
 streamer.subscribe("sensor_data", sensor_data_callback, interval=0.1)
+```
+
+## Network Streaming
+
+### Overview
+
+**FlightMatrix Bridge** provides a robust network streaming feature that allows seamless communication between the server and multiple clients. This enables real-time data transmission, including sensor data, visual frames, and movement commands, facilitating efficient control and monitoring of flight simulations.
+
+### Components
+
+1. **Server (`Server.py`)**
+2. **Client (`Examples/8. Client.py`)**
+3. **DataStreamer**
+
+### Server Setup
+
+The server is responsible for broadcasting subscribed data streams to connected clients. It leverages the `FlightMatrixServer` class to manage client connections, handle subscriptions, and continuously send data at specified intervals.
+
+#### Key Functions
+
+- `start()`: Initializes and starts the server to listen for incoming client connections.
+- `accept_clients()`: Handles the acceptance of new client connections.
+- `handle_client(client_socket)`: Manages communication with a connected client.
+- `send_data_to_client(client_socket)`: Sends subscribed data streams to the client.
+- `collect_data(subscription_list)`: Gathers the required data based on client subscriptions.
+- `send_data_in_chunks(client_socket, data_bytes, chunk_size=4096)`: Ensures efficient data transmission by sending data in manageable chunks.
+- `receive_data(sock)`: Receives incoming data from clients.
+- `disconnect_client(client_socket)`: Safely disconnects a client from the server.
+- `stop()`: Stops the server and disconnects all clients.
+
+### Client Setup
+
+Clients connect to the server to receive real-time data streams. The `FlightMatrixClient` class facilitates this connection, allowing clients to specify their data subscriptions and handle incoming data through callback functions.
+
+#### Key Functions
+
+- `__init__(host, port, subscription_list, data_callback)`: Initializes the client with server details, desired data streams, and a callback for handling received data.
+- `connect()`: Establishes a connection to the server.
+- `receive_data_loop()`: Continuously listens for incoming data from the server.
+- `process_received_data(data)`: Processes and handles the received data.
+- `send_movement_command(x, y, z, roll, pitch, yaw)`: Sends movement commands to the server.
+- `send_data(data)`: Sends arbitrary data to the server.
+- `receive_data()`: Receives data from the server.
+- `disconnect()`: Disconnects the client from the server.
+
+### DataStreamer
+
+The `DataStreamer` class offers a streamlined way to handle data streaming with callback functions, ensuring that data processing is handled efficiently and without blocking other operations.
+
+#### Features
+
+- **Subscribe to Data Streams**: Define which data types to receive (e.g., sensor data, frames).
+- **Parallel Data Fetching**: Each data stream operates in its own thread, allowing simultaneous processing.
+- **Customizable Intervals**: Set the frequency of data retrieval or opt for the fastest possible streaming.
+
+### Usage
+
+#### Server Example (`Examples/7. Server.py`)
+
+```python
+# server_example.py
+
+from flightmatrix.bridge import FlightMatrixBridge
+from flightmatrix.server import FlightMatrixServer
+import time
+
+# Initialize the bridge with desired resolution
+bridge = FlightMatrixBridge()
+
+# Start the server
+server = FlightMatrixServer(
+    host='0.0.0.0',
+    port=9999,
+    bridge=bridge,
+    broadcast_interval=0.00  # Adjusted interval for higher FPS
+)
+server.start()
+
+try:
+    while True:
+        time.sleep(1)
+except KeyboardInterrupt:
+    server.stop()
+```
+
+#### Client Example (`Examples/8. Client.py`)
+
+```python
+from flightmatrix.server import FlightMatrixClient
+import cv2
+import time
+
+def data_callback(data):
+    # Handle received data
+    if 'sensor_data' in data:
+        sensor_data = data['sensor_data']
+        print(f"Sensor Data: {sensor_data}")
+
+    if 'left_frame' in data:
+        left_frame_info = data['left_frame']
+        frame = left_frame_info['frame']  # Frame is already decoded
+        cv2.imshow('Left Frame', frame)
+        cv2.waitKey(1)
+
+    if 'right_frame' in data:
+        right_frame_info = data['right_frame']
+        frame = right_frame_info['frame']  # Frame is already decoded
+        cv2.imshow('Right Frame', frame)
+        cv2.waitKey(1)
+    # Handle other data types similarly
+
+# Specify the data types you want to subscribe to
+subscription_list = ['sensor_data', 'left_frame', 'right_frame']
+
+# Initialize the client
+client = FlightMatrixClient(
+    host='localhost',
+    port=9999,
+    subscription_list=subscription_list,
+    data_callback=data_callback
+)
+client.connect()
+
+# Example: Send a movement command once, if needed
+time.sleep(5)
+client.send_movement_command(x=0, y=0, z=0, roll=0, pitch=0, yaw=5)
+
+time.sleep(5)
+client.send_movement_command(x=0, y=0, z=0, roll=0, pitch=0, yaw=0)
+
+# Keep the client running to receive data
+try:
+    while True:
+        time.sleep(1)
+except KeyboardInterrupt:
+    client.disconnect()
+    cv2.destroyAllWindows()
 ```
 
 ## Credits

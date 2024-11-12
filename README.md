@@ -58,7 +58,8 @@ The project is structured around two primary files:
           - [Methods](#methods)
     5. [Class: `DataStreamer`](#data-streaming-with-datastreamer)
 9. [Network Streaming](#network-streaming)
-10. [Credits](#credits)
+10. [Logging Configuration](#logging-configuration)
+11. [Credits](#credits)
 
 ## Introduction
 
@@ -1669,6 +1670,66 @@ try:
 except KeyboardInterrupt:
     client.disconnect()
     cv2.destroyAllWindows()
+```
+
+## Logging Configuration
+
+Both `FlightMatrixServer` and `FlightMatrixClient` classes provide methods to configure logging settings.
+
+### Setting Log Level
+
+You can adjust the verbosity of the logs by setting the log level. Available levels are `'DEBUG'`, `'INFO'`, `'WARNING'`, `'ERROR'`, and `'SUCCESS'`.
+
+#### FlightMatrixServer
+
+```python
+from flightmatrix.server import FlightMatrixServer
+
+# Initialize the server
+server = FlightMatrixServer(host='0.0.0.0', port=9999, bridge=bridge)
+
+# Set log level to 'DEBUG'
+server.set_log_level('DEBUG')
+```
+
+#### FlightMatrixClient
+
+```python
+from flightmatrix.server import FlightMatrixClient
+
+# Initialize the client
+client = FlightMatrixClient(host='localhost', port=9999, subscription_list=['sensor_data'], data_callback=data_callback)
+
+# Set log level to 'DEBUG'
+client.set_log_level('DEBUG')
+```
+
+### Enabling Logging to File
+
+You can enable logging to a file for both `FlightMatrixServer` and `FlightMatrixClient`.
+
+#### FlightMatrixServer
+
+```python
+from flightmatrix.server import FlightMatrixServer
+
+# Initialize the server
+server = FlightMatrixServer(host='0.0.0.0', port=9999, bridge=bridge)
+
+# Enable logging to file
+server.set_write_to_file(True)
+```
+
+#### FlightMatrixClient
+
+```python
+from flightmatrix.server import FlightMatrixClient
+
+# Initialize the client
+client = FlightMatrixClient(host='localhost', port=9999, subscription_list=['sensor_data'], data_callback=data_callback)
+
+# Enable logging to file
+client.set_write_to_file(True)
 ```
 
 ## Credits

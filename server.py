@@ -7,6 +7,7 @@ import numpy as np
 import select  # Add this import
 import cv2  # Add this import
 from flightmatrix.bridge import FlightMatrixBridge
+from ultraprint.logging import logger  # Add this import for client logging
 
 #! Server
 class FlightMatrixServer:
@@ -32,13 +33,14 @@ class FlightMatrixServer:
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.clients = {}  # client_socket: {'subscription_list': [], 'lock': threading.Lock()}
         self.running = False
+        self.log = bridge.log  # Extract the log object from the bridge
 
     def start(self):
         """Starts the server and begins listening for clients."""
         self.server_socket.bind((self.host, self.port))
         self.server_socket.listen()
         self.running = True
-        print(f"Server started on {self.host}:{self.port}")
+        self.log.info(f"Server started on {self.host}:{self.port}")
 
         threading.Thread(target=self.accept_clients, daemon=True).start()
 
@@ -46,7 +48,7 @@ class FlightMatrixServer:
         """Accepts new client connections."""
         while self.running:
             client_socket, addr = self.server_socket.accept()
-            print(f"Client connected from {addr}")
+            self.log.info(f"Client connected from {addr}")
             # Handle client in a separate thread
             threading.Thread(target=self.handle_client, args=(client_socket,), daemon=True).start()
 
@@ -61,7 +63,7 @@ class FlightMatrixServer:
             subscription_list = subscription_data.get('subscribe', [])
             self.clients[client_socket] = {'subscription_list': subscription_list, 'lock': threading.Lock()}
 
-            print(f"Client subscribed to: {subscription_list}")
+            self.log.info(f"Client subscribed to: {subscription_list}")
 
             # Start sending data to this client
             threading.Thread(target=self.send_data_to_client, args=(client_socket,), daemon=True).start()
@@ -87,7 +89,7 @@ class FlightMatrixServer:
                     # No data received; continue looping
                     continue
         except Exception as e:
-            print(f"Exception handling client: {e}")
+            self.log.error(f"Exception handling client: {e}")
         finally:
             self.disconnect_client(client_socket)
 
@@ -102,7 +104,7 @@ class FlightMatrixServer:
                     self.send_data_in_chunks(client_socket, serialized_data)
                 time.sleep(self.broadcast_interval)
         except Exception as e:
-            print(f"Error sending data to client: {e}")
+            self.log.error(f"Error sending data to client: {e}")
         finally:
             self.disconnect_client(client_socket)
 
@@ -181,7 +183,7 @@ class FlightMatrixServer:
                 # Send the serialized data
                 client_socket.sendall(data_bytes)
             except Exception as e:
-                print(f"Error sending data: {e}")
+                self.log.error(f"Error sending data: {e}")
                 self.disconnect_client(client_socket)
 
     def receive_data(self, sock):
@@ -202,7 +204,7 @@ class FlightMatrixServer:
             # Deserialize data
             return pickle.loads(data)
         except Exception as e:
-            print(f"Error receiving data: {e}")
+            self.log.error(f"Error receiving data: {e}")
             return None
 
     def disconnect_client(self, client_socket):
@@ -210,7 +212,7 @@ class FlightMatrixServer:
         if client_socket in self.clients:
             del self.clients[client_socket]
         client_socket.close()
-        print("Client disconnected")
+        self.log.info("Client disconnected")
 
     def stop(self):
         """Stops the server and closes all client connections."""
@@ -218,7 +220,27 @@ class FlightMatrixServer:
         for client_socket in list(self.clients.keys()):
             client_socket.close()
         self.server_socket.close()
-        print("Server stopped")
+        self.log.info("Server stopped")
+
+    def set_log_level(self, log_level='INFO'):
+        """
+        Sets the logging level for the application.
+
+        Parameters:
+            log_level (str): The desired logging level. Default is 'INFO'.
+        """
+        self.log.set_log_level(log_level)
+        self.log.success(f"Log level set to {log_level}")
+
+    def set_write_to_file(self, write_to_file):
+        """
+        Sets the logging behavior to write to a file.
+
+        Parameters:
+            write_to_file (bool): If True, logging will be written to a file.
+        """
+        self.log.set_write_to_file(write_to_file)
+        self.log.success(f"Write to file set to {write_to_file}")
 
 #! Client
 class FlightMatrixClient:
@@ -244,6 +266,7 @@ class FlightMatrixClient:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.running = False
         self.lock = threading.Lock()
+        self.log = logger('FlightMatrixClientLog', include_extra_info=False, write_to_file=False, log_level='DEBUG')  # Initialize logger for client
 
     def connect(self):
         """Connects to the server and starts listening for data."""
@@ -266,7 +289,7 @@ class FlightMatrixClient:
                 else:
                     break  # Server closed connection
         except Exception as e:
-            print(f"Exception receiving data: {e}")
+            self.log.error(f"Exception receiving data: {e}")
         finally:
             self.disconnect()
 
@@ -303,7 +326,7 @@ class FlightMatrixClient:
                 message = struct.pack('>I', data_length) + serialized_data
                 self.socket.sendall(message)
             except Exception as e:
-                print(f"Error sending data: {e}")
+                self.log.error(f"Error sending data: {e}")
 
     def receive_data(self):
         """Receives data from the server."""
@@ -323,11 +346,31 @@ class FlightMatrixClient:
             # Deserialize data
             return pickle.loads(data)
         except Exception as e:
-            print(f"Error receiving data: {e}")
+            self.log.error(f"Error receiving data: {e}")
             return None
 
     def disconnect(self):
         """Disconnects from the server."""
         self.running = False
         self.socket.close()
-        print("Disconnected from server")
+        self.log.info("Disconnected from server")
+
+    def set_log_level(self, log_level='INFO'):
+        """
+        Sets the logging level for the application.
+
+        Parameters:
+            log_level (str): The desired logging level. Default is 'INFO'.
+        """
+        self.log.set_log_level(log_level)
+        self.log.success(f"Log level set to {log_level}")
+
+    def set_write_to_file(self, write_to_file):
+        """
+        Sets the logging behavior to write to a file.
+
+        Parameters:
+            write_to_file (bool): If True, logging will be written to a file.
+        """
+        self.log.set_write_to_file(write_to_file)
+        self.log.success(f"Write to file set to {write_to_file}")

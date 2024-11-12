@@ -42,6 +42,9 @@ The project is structured around two primary files:
     3. [Example 3: Fetching Sensor Data](#example-3-fetching-sensor-data)
     4. [Example 4: Drone Controller](#example-4-drone-controller)
     5. [Example 5: Data Recorder](#example-5-data-recorder)
+    6. [Example 6: Data Streaming with DataStreamer](#example-6-data-streaming-with-datastreamer)
+    7. [Example 7: Server Side Data Streaming](#example-7-server-side-data-streaming)
+    8. [Example 8: Client Side Data Receiving](#example-8-client-side-data-receiving)
 8. [Documentation](#documentation)
     1. [Class: `FlightMatrixBridge`](#class-flightmatrixbridge)
         - [Attributes](#attributes)
@@ -531,6 +534,192 @@ if __name__ == "__main__":
     time.sleep(120)  # Record for 120 seconds
 
     recorder.stop_recording()
+```
+
+### Example 6: Data Streaming with DataStreamer
+
+```python
+import cv2
+from flightmatrix.bridge import FlightMatrixBridge
+from flightmatrix.utilities import DataStreamer
+
+def left_frame_callback(left_frame_data):
+    left_frame = left_frame_data['frame']
+    left_timestamp = left_frame_data['timestamp']
+    cv2.imshow("Left Frame", left_frame)
+
+    # Break the loop when 'q' is pressed
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        cv2.destroyAllWindows()
+
+    print("Left Frame Timestamp:", left_timestamp)
+
+def right_frame_callback(right_frame_data):
+    right_frame = right_frame_data['frame']
+    right_timestamp = right_frame_data['timestamp']
+    cv2.imshow("Right Frame", right_frame)
+
+    # Break the loop when 'q' is pressed
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        cv2.destroyAllWindows()
+
+    print("Right Frame Timestamp:", right_timestamp)
+
+def left_zdepth_callback(left_zdepth_data):
+    left_zdepth = left_zdepth_data['frame']
+    left_timestamp = left_zdepth_data['timestamp']
+    cv2.imshow("Left Z-Depth", left_zdepth)
+
+    # Break the loop when 'q' is pressed
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        cv2.destroyAllWindows()
+
+    print("Left Z-Depth Timestamp:", left_timestamp)
+
+def right_zdepth_callback(right_zdepth_data):
+    right_zdepth = right_zdepth_data['frame']
+    right_timestamp = right_zdepth_data['timestamp']
+    cv2.imshow("Right Z-Depth", right_zdepth)
+
+    # Break the loop when 'q' is pressed
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        cv2.destroyAllWindows()
+
+    print("Right Z-Depth Timestamp:", right_timestamp)
+
+def left_seg_callback(left_seg_data):
+    left_seg = left_seg_data['frame']
+    left_timestamp = left_seg_data['timestamp']
+    cv2.imshow("Left Segmentation", left_seg)
+
+    # Break the loop when 'q' is pressed
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        cv2.destroyAllWindows()
+
+    print("Left Segmentation Timestamp:", left_timestamp)
+
+def right_seg_callback(right_seg_data):
+    right_seg = right_seg_data['frame']
+    right_timestamp = right_seg_data['timestamp']
+    cv2.imshow("Right Segmentation", right_seg)
+
+    # Break the loop when 'q' is pressed
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        cv2.destroyAllWindows()
+
+    print("Right Segmentation Timestamp:", right_timestamp)
+
+def sensor_data_callback(sensor_data):
+    print("Sensor Data:", sensor_data)
+
+# Initialize the FlightMatrixBridge
+bridge = FlightMatrixBridge()
+
+# Initialize the DataStreamer
+streamer = DataStreamer(bridge)
+
+# Subscribe to the left frame data stream
+streamer.subscribe("left_frame", left_frame_callback, interval=0)
+
+# Subscribe to the right frame data stream
+streamer.subscribe("right_frame", right_frame_callback, interval=0.1)
+
+# Subscribe to the left z-depth data stream
+streamer.subscribe("left_zdepth", left_zdepth_callback, interval=0.1)
+
+# Subscribe to the right z-depth data stream
+streamer.subscribe("right_zdepth", right_zdepth_callback, interval=0.1)
+
+# Subscribe to the left segmentation data stream
+streamer.subscribe("left_seg", left_seg_callback, interval=0.1)
+
+# Subscribe to the right segmentation data stream
+streamer.subscribe("right_seg", right_seg_callback, interval=0.1)
+
+# Subscribe to the sensor data stream
+streamer.subscribe("sensor_data", sensor_data_callback, interval=0.1)
+```
+
+### Example 7: Server Side Data Streaming
+
+```python
+# server_example.py
+
+from flightmatrix.bridge import FlightMatrixBridge
+from flightmatrix.server import FlightMatrixServer
+import time
+
+# Initialize the bridge with desired resolution
+bridge = FlightMatrixBridge()
+
+# Start the server
+server = FlightMatrixServer(
+    host='0.0.0.0',
+    port=9999,
+    bridge=bridge,
+    broadcast_interval=0.00  # Adjusted interval for higher FPS
+)
+server.start()
+
+try:
+    while True:
+        time.sleep(1)
+except KeyboardInterrupt:
+    server.stop()
+```
+
+### Example 8: Client Side Data Receiving
+
+```python
+from flightmatrix.server import FlightMatrixClient
+import cv2
+import time
+
+def data_callback(data):
+    # Handle received data
+    if 'sensor_data' in data:
+        sensor_data = data['sensor_data']
+        print(f"Sensor Data: {sensor_data}")
+
+    if 'left_frame' in data:
+        left_frame_info = data['left_frame']
+        frame = left_frame_info['frame']  # Frame is already decoded
+        cv2.imshow('Left Frame', frame)
+        cv2.waitKey(1)
+
+    if 'right_frame' in data:
+        right_frame_info = data['right_frame']
+        frame = right_frame_info['frame']  # Frame is already decoded
+        cv2.imshow('Right Frame', frame)
+        cv2.waitKey(1)
+    # Handle other data types similarly
+
+# Specify the data types you want to subscribe to
+subscription_list = ['sensor_data', 'left_frame', 'right_frame']
+
+# Initialize the client
+client = FlightMatrixClient(
+    host='localhost',
+    port=9999,
+    subscription_list=subscription_list,
+    data_callback=data_callback
+)
+client.connect()
+
+# Example: Send a movement command once, if needed
+time.sleep(5)
+client.send_movement_command(x=0, y=0, z=0, roll=0, pitch=0, yaw=5)
+
+time.sleep(5)
+client.send_movement_command(x=0, y=0, z=0, roll=0, pitch=0, yaw=0)
+
+# Keep the client running to receive data
+try:
+    while True:
+        time.sleep(1)
+except KeyboardInterrupt:
+    client.disconnect()
+    cv2.destroyAllWindows()
 ```
 
 ## Documentation
